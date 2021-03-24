@@ -1,7 +1,7 @@
-OBJ=command-line.o os-commands.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o libUseful-4/libUseful.a
+OBJ=command-line.o os-commands.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o 
 
-FLAGS=-g -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -D_FILE_OFFSET_BITS=64
-LIBS= libUseful-4/libUseful.a
+FLAGS=-g -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -D_FILE_OFFSET_BITS=64 -DHAVE_LIBUSEFUL_4=1 -DHAVE_LIBSSL=1 -DHAVE_LIBCRYPTO=1
+LIBS=-lcrypto -lssl -lUseful-4  
 
 all: $(OBJ)
 	gcc $(FLAGS) -oqemu_mgr main.c $(OBJ) $(LIBS)
@@ -61,7 +61,7 @@ libUseful-4/libUseful.a:
 	$(MAKE) -C libUseful-4
 
 clean:
-	rm -f *.o */*.o */*.so */*.a invoked invoke grant
+	rm -f *.o */*.o */*.so */*.a qemu_mgr
 
 test:
 	echo "no tests"

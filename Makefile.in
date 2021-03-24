@@ -61,7 +61,7 @@ libUseful-4/libUseful.a:
 	$(MAKE) -C libUseful-4
 
 clean:
-	rm -f *.o */*.o */*.so */*.a invoked invoke grant
+	rm -f *.o */*.o */*.so */*.a qemu_mgr
 
 test:
 	echo "no tests"

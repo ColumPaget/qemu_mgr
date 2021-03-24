@@ -58,6 +58,7 @@ static void CommandLineParseListCommand(ListNode *Actions, CMDLINE *Cmd)
 static char *CommandLineParseImageArgs(char *RetStr, CMDLINE *Cmd)
 {
     const char *arg;
+		char *Tempstr=NULL;
 
     arg=CommandLineNext(Cmd);
     while (arg)
@@ -78,10 +79,17 @@ static char *CommandLineParseImageArgs(char *RetStr, CMDLINE *Cmd)
         else if (strcmp(arg, "-display")==0) RetStr=MCatStr(RetStr, "display=", CommandLineNext(Cmd), " ", NULL);
         else if (strcmp(arg, "-portfwd")==0) RetStr=MCatStr(RetStr, "portfwd=", CommandLineNext(Cmd), " ", NULL);
         else if (strcmp(arg, "-desktop")==0) RetStr=MCatStr(RetStr, "desktop_file=y ", NULL);
+        else if (strcmp(arg, "-template")==0) 
+				{
+					Tempstr=ConfigTemplateLoad(Tempstr, CommandLineNext(Cmd));
+					RetStr=MCatStr(RetStr, Tempstr, " ", NULL);
+				}
         else RetStr=MCatStr(RetStr, arg, " ", NULL);
 
         arg=CommandLineNext(Cmd);
     }
+
+		Destroy(Tempstr);
 
     return(RetStr);
 }
@@ -89,8 +97,8 @@ static char *CommandLineParseImageArgs(char *RetStr, CMDLINE *Cmd)
 
 static void CommandLineParseCreateCommand(ListNode *Actions, CMDLINE *Cmd)
 {
-    const char *arg;
     char *Name=NULL, *Config=NULL;
+    const char *arg;
 
     Name=CopyStr(Name, CommandLineNext(Cmd));
 
