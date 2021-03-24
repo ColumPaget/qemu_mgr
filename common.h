@@ -4,6 +4,8 @@
 
 #include "libUseful-4/libUseful.h"
 
+#define VERSION "1.0"
+
 typedef enum {IA_UNKNOWN, IA_CLI, IA_TERMINAL, IA_XDIALOG} EInteractModes;
 
 typedef struct

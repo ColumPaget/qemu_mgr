@@ -326,12 +326,51 @@ static void CommandLineParseInfoCommand(ListNode *Actions, CMDLINE *Cmd)
 }
 
 
-static void CommandLinePrintHelp()
+static void CommandLinePrintVersion()
 {
-
-
+printf("qemu_mgr: version %s\n", VERSION);
 }
 
+static void CommandLinePrintHelp()
+{
+printf("qemu_mgr can be run in interactive mode (follow-your-nose menus) or at the command line. The interactive menus either require zenity or qarma to be installed, or else can be run in 'terminal' mode ('qemu_mgr -i term') to get generic text-driven menus.\n\n"); 
+printf("Command line options are:\n\n");
+printf("qemu_mgr\n");
+printf("	run interactive mode with auto-detected dialog system\n");
+printf("qemu_mgr -i <type>\n");
+printf("	run interactive mode with specified dialog system. 'type' can be 'term', 'qarma' or 'zenity'\n");
+printf("qemu_mgr create <vm name> <options>\n");
+printf("	create a vm from a .iso file. 'options' must include a '-iso' option specifying the path to the .iso file\n");
+printf("qemu_mgr import <vm name> <options>\n");
+printf("	import a vm from an image file. 'options' must include a '-img' option specifying the path to the image file\n");
+printf("qemu_mgr add		<vm name> <options>\n");
+printf("	add an existing image file. This option doesn't create an image file in the '.qemu_mgr' directory, but uses the existing image file whereever it is. 'options' must include a '-img' option specifying the path to the image file\n");
+printf("qemu_mgr change <vm name> <options>\n");
+printf("	change settings for an existing vm.\n");
+printf("qemu_mgr start	<vm name> <options>\n");
+printf("	start a configured vm, possibly changing some settings via 'options'.\n");
+printf("qemu_mgr stop	 <vm name> <options>\n");
+printf("	stop a running vm.\n");
+printf("qemu_mgr list	 <vm name> <options>\n");
+printf("	list configured VMs.\n");
+printf("qemu_mgr vnc		<vm name> <options>\n");
+printf("	connect to a vm with VNC.\n");
+printf("qemu_mgr send-text <vm name> <options>\n");
+printf("	read text from stdin and send it to a running vm.\n");
+printf("qemu_mgr send-key	<vm name> <key name>\n");
+printf("	send keystroke 'key name' to a running vm.\n");
+printf("qemu_mgr screenshot <vm name> <options>\n");
+printf("	screenshot a running vm.\n");
+printf("\n");
+printf("Options\n\n");
+printf(" -iso <path>        specify path to a .iso O.S. installer file for use in setting up a vm\n");
+printf(" -img <path>        specify path to an image file for use in setting up a vm\n");
+printf(" -template <name>   config template to use for VM. Default is the template 'Generic' which creates a disk image 40G in size, and a memorty allocation of 2047 megabytes, and a machine type of 'pc' (i440fx)\n");
+printf(" -size <size>       size of newly created image file, overriding what was specified in the selected template. The 'size' argument takes a postfix of 'M' or 'G' to specify megabytes or gigabytes.\n");
+printf(" -mem <size>        memory allocated to the VM in megabytes, overriding the selected template.\n");
+printf(" -machine <type>    machine type: one of 'pc', 'q35', 'isapc' or 'microvm'.\n");
+printf(" -display <type>    display type: one of 'std', 'virtio', 'qxl', 'rage128p', 'rv100', 'vnc' or 'none'. The 'vnc' display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
+}
 
 ListNode *CommandLineParse(int argc, char *argv[])
 {
