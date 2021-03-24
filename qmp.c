@@ -52,10 +52,10 @@ STREAM *QMPOpen(const char *ImageName)
     if (S)
     {
         Tempstr=STREAMReadLine(Tempstr, S);
-        fprintf(stderr,"QMP: %s\n", Tempstr);
+        //fprintf(stderr,"QMP: %s\n", Tempstr);
         STREAMWriteLine("{\"execute\": \"qmp_capabilities\"}\n", S);
         Tempstr=STREAMReadLine(Tempstr, S);
-        fprintf(stderr,"QMP: %s\n", Tempstr);
+        //fprintf(stderr,"QMP: %s\n", Tempstr);
     }
 
     Destroy(Tempstr);
@@ -69,9 +69,9 @@ ListNode *QMPCommand(STREAM *S, const char *Cmd)
     ListNode *Msg=NULL;
 
     STREAMWriteLine(Cmd, S);
-    fprintf(stderr,"QMP: %s\n", Cmd);
+    //fprintf(stderr,"QMP: %s\n", Cmd);
     Tempstr=STREAMReadLine(Tempstr, S);
-    fprintf(stderr,"QMP: %s\n", Tempstr);
+    //fprintf(stderr,"QMP: %s\n", Tempstr);
     Msg=ParserParseDocument("json", Tempstr);
 
     Destroy(Tempstr);

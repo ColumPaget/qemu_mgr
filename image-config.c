@@ -3,12 +3,19 @@
 char *ImageConfigExpand(char *RetStr, ListNode *ConfTree)
 {
     ListNode *Values, *Curr;
+    const char *ptr;
 
     Values=ParserOpenItem(ConfTree, "/");
     Curr=ListGetNext(Values);
     while (Curr)
     {
-        RetStr=MCatStr(RetStr, Curr->Tag, "='", Curr->Item, "' ", NULL);
+	if (StrValid(Curr->Tag))
+	{
+	ptr=(const char *) Curr->Item;
+	if (! ptr) ptr="";
+	
+        RetStr=MCatStr(RetStr, Curr->Tag, "='", ptr, "' ", NULL);
+	}
         Curr=ListGetNext(Curr);
     }
 

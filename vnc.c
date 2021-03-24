@@ -4,10 +4,11 @@
 
 char *VNCBuildViewerList(char *RetStr)
 {
-    const char *Viewers="vncviewer,tightvncviewer,tigervncviewer";
+    const char *Viewers="tigervnc,tightvncviewer,tigervncviewer,vncviewer";
     char *Token=NULL, *Tempstr=NULL;
     const char *ptr;
 
+    RetStr=CopyStr(RetStr, "");
     ptr=GetToken(Viewers, ",", &Token, 0);
     while (ptr)
     {
@@ -15,10 +16,11 @@ char *VNCBuildViewerList(char *RetStr)
         if (StrValid(Tempstr))
         {
             if (! StrValid(RetStr)) RetStr=MCopyStr(RetStr, "none,", Tempstr, NULL);
-            else RetStr=MCopyStr(RetStr, ",", Tempstr, NULL);
+            else RetStr=MCatStr(RetStr, ",", Tempstr, NULL);
         }
         ptr=GetToken(ptr, ",", &Token, 0);
     }
+printf("ViewerList: %s\n", RetStr);
 
     Destroy(Tempstr);
     Destroy(Token);
@@ -33,11 +35,13 @@ int VNCSetPassword(const char *ImageName, const char *Password)
     char *Tempstr=NULL;
 
     Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"change-vnc-password\", \"arguments\": { \"password\": \"", Password, "\" } }\n", NULL);
+printf("VNCSETPASS: %s\n", Tempstr);
     Qmp=QMPTransact(ImageName, Tempstr);
     if (QMPIsError(Qmp))
     {
         //try again with deprecated 'change' command
         Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"change\", \"arguments\": { \"device\": \"vnc\", \"target\": \"password\", \"arg\": \"", Password, "\" } }\n", NULL);
+printf("VNCSETPASS: %s\n", Tempstr);
         Qmp=QMPTransact(ImageName, Tempstr);
     }
 
@@ -82,13 +86,11 @@ void VNCLaunchViewer(const char *ViewerList, ListNode *Config)
     char *Tempstr=NULL, *Token=NULL, *Viewer=NULL;
     const char *ptr="";
 
-    ptr=GetToken(ViewerList, ",", &Token, 0);
+    ptr=GetToken(ViewerList, ",", &Viewer, 0);
     while (ptr)
     {
-        Tempstr=FindFileInPath(Tempstr, Token, getenv("PATH"));
-        printf("FIP: [%s] [%s]\n", Token, Tempstr);
-        if (StrValid(Tempstr)) Viewer=CopyStr(Viewer, Token);
-        ptr=GetToken(ptr, ",", &Token, 0);
+    if (access(Viewer, X_OK)==0) break;
+    ptr=GetToken(ptr, ",", &Viewer, 0);
     }
 
     if (Config) ptr=ParserGetValue(Config, "vncviewer-delay");
@@ -111,12 +113,13 @@ void VNCLaunchViewer(const char *ViewerList, ListNode *Config)
 }
 
 
-void VNCConnect(const char *ImageName)
+int VNCConnect(const char *ImageName)
 {
     char *Tempstr=NULL;
     ListNode *Vars;
 
     Tempstr=VNCGetInfo(Tempstr, ImageName);
+    printf("VNCC: %s\n", Tempstr);
     Vars=ListCreate();
     SetVar(Vars, "vnc-endpoint", Tempstr);
     Tempstr=VNCBuildViewerList(Tempstr);

@@ -1,8 +1,11 @@
 #include "command-line.h"
+#include "image-config.h"
 #include "config-templates.h"
 #include "actions.h"
 #include "devices.h"
+#include "images.h"
 #include "vnc.h"
+#include <glob.h>
 
 
 static void CommandLineListUSB()
@@ -40,56 +43,110 @@ static void CommandLineListTemplates()
 }
 
 
-static void CommandLineParseListCommand(ListNode *Actions, CMDLINE *Cmd)
+static void CommandLineListImages(const char *ListType)
+{
+    char *Tempstr=NULL, *State=NULL, *RunInfo=NULL, *Name=NULL;
+    glob_t Glob;
+    TImageInfo *ImageInfo;
+    ListNode *ImageConf;
+    int i;
+
+    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/*.qemu_mgr", NULL);
+    glob(Tempstr, 0, 0, &Glob);
+    for (i=0; i < Glob.gl_pathc; i++)
+    {
+        Name=CopyStr(Name, GetBasename(Glob.gl_pathv[i]));
+        StrRTruncChar(Name, '.');
+        ImageConf=ImageConfigLoad(Name);
+        ImageInfo=ImageGetRunningInfo(Name);
+        if (ImageInfo)
+        {
+            RunInfo=CopyStr(RunInfo, GetDateStrFromSecs("%Y/%m/%d %H:%M:%S", ImageInfo->start_time, NULL));
+            State=CopyStr(State, "UP");
+            ImageInfoDestroy(ImageInfo);
+        }
+        else
+        {
+            RunInfo=CopyStr(RunInfo, "   ");
+            State=CopyStr(State, "");
+        }
+
+        printf("%-5s %-20s size=%s mem=%s %s\n", State, ParserGetValue(ImageConf, "name"), ParserGetValue(ImageConf, "size"), ParserGetValue(ImageConf, "memory"), RunInfo);
+        ParserItemsDestroy(ImageConf);
+    }
+    globfree(&Glob);
+
+    Destroy(Tempstr);
+    Destroy(RunInfo);
+    Destroy(State);
+    Destroy(Name);
+}
+
+
+
+static void CommandLineListCommand(ListNode *Actions, CMDLINE *Cmd)
 {
     const char *arg;
 
     arg=CommandLineNext(Cmd);
     if (StrValid(arg))
     {
-        if (strcasecmp(arg, "images")==0) ListAddTypedItem(Actions, ACT_LIST_IMAGES, "list-images", NULL);
-        else if (strcasecmp(arg, "running")==0) ListAddTypedItem(Actions, ACT_LIST_IMAGES, "list-running", NULL);
-        else ListAddTypedItem(Actions, ACT_LIST_IMAGES, "list-all", NULL);
+        if (strcasecmp(arg, "images")==0) CommandLineListImages("list-images");
+        else if (strcasecmp(arg, "running")==0) CommandLineListImages("list-running");
+        else CommandLineListImages("list-all");
     }
-    else ListAddTypedItem(Actions, ACT_LIST_IMAGES, "list-all", NULL);
+    else CommandLineListImages("list-all");
 }
 
 
 static char *CommandLineParseImageArgs(char *RetStr, CMDLINE *Cmd)
 {
-    const char *arg;
-		char *Tempstr=NULL;
+    const char *arg, *ptr;
+    char *Tempstr=NULL;
+    ListNode *Conf;
 
+    Conf=ListCreate();
+	ImageConfigUpdate(Conf, RetStr);
+	RetStr=CopyStr(RetStr, "");
     arg=CommandLineNext(Cmd);
     while (arg)
     {
 
-        if (strcmp(arg, "-arch")==0) RetStr=MCatStr(RetStr, "arch=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-size")==0) RetStr=MCatStr(RetStr, "size=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-img")==0) RetStr=MCatStr(RetStr, "img=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-iso")==0) RetStr=MCatStr(RetStr, "iso=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-mem")==0) RetStr=MCatStr(RetStr, "mem=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-pw")==0) RetStr=MCatStr(RetStr, "password=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-pass")==0) RetStr=MCatStr(RetStr, "password=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-password")==0) RetStr=MCatStr(RetStr, "password=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-net")==0) RetStr=MCatStr(RetStr, "network=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-user")==0) RetStr=MCatStr(RetStr, "user=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-chroot")==0) RetStr=MCatStr(RetStr, "chroot=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-jail")==0) RetStr=MCatStr(RetStr, "jail=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-display")==0) RetStr=MCatStr(RetStr, "display=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-portfwd")==0) RetStr=MCatStr(RetStr, "portfwd=", CommandLineNext(Cmd), " ", NULL);
-        else if (strcmp(arg, "-desktop")==0) RetStr=MCatStr(RetStr, "desktop_file=y ", NULL);
-        else if (strcmp(arg, "-template")==0) 
-				{
-					Tempstr=ConfigTemplateLoad(Tempstr, CommandLineNext(Cmd));
-					RetStr=MCatStr(RetStr, Tempstr, " ", NULL);
-				}
-        else RetStr=MCatStr(RetStr, arg, " ", NULL);
+        if (strcmp(arg, "-arch")==0) SetVar(Conf, "arch", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-size")==0) SetVar(Conf, "size", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-img")==0) SetVar(Conf, "img", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-iso")==0) SetVar(Conf, "iso", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-mem")==0) SetVar(Conf, "memory", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-machine")==0) SetVar(Conf, "machine", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-pw")==0) SetVar(Conf, "password", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-pass")==0) SetVar(Conf, "password", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-password")==0) SetVar(Conf, "password", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-net")==0) SetVar(Conf, "network", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-user")==0) SetVar(Conf, "user", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-chroot")==0) SetVar(Conf, "chroot", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-jail")==0) SetVar(Conf, "jail", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-display")==0) SetVar(Conf, "display", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-portfwd")==0) SetVar(Conf, "portfwd", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-template")==0)
+        {
+	  arg=CommandLineNext(Cmd);
+            Tempstr=ConfigTemplateLoad(Tempstr, arg);
+	if (StrValid(Tempstr)) ImageConfigUpdate(Conf, Tempstr);
+        }
+        else if (*arg == '-') SetVar(Conf, arg+1, CommandLineNext(Cmd));
+	else
+	{
+	ptr=GetToken(arg, "=", &Tempstr, 0);
+	SetVar(Conf, Tempstr, ptr);	
+	}
 
         arg=CommandLineNext(Cmd);
     }
 
-		Destroy(Tempstr);
+    RetStr=ImageConfigExpand(RetStr, Conf);
+printf("RS: %s\n", RetStr);
+
+    Destroy(Tempstr);
 
     return(RetStr);
 }
@@ -138,10 +195,8 @@ static void CommandLineParseMediaAddCommand(ListNode *Actions, CMDLINE *Cmd)
 
     Name=CopyStr(Name, CommandLineNext(Cmd));
     arg=CommandLineNext(Cmd);
-    printf("MAC: %s %s\n", Name, arg);
     Config=MCatStr(Config, "dev='", arg, "' ", NULL);
     arg=CommandLineNext(Cmd);
-    printf("DEV: %s %s\n", Name, arg);
     Config=MCatStr(Config, "media='", arg, "' ", NULL);
 
     if (
@@ -271,6 +326,11 @@ static void CommandLineParseInfoCommand(ListNode *Actions, CMDLINE *Cmd)
 }
 
 
+static void CommandLinePrintHelp()
+{
+
+
+}
 
 
 ListNode *CommandLineParse(int argc, char *argv[])
@@ -286,7 +346,7 @@ ListNode *CommandLineParse(int argc, char *argv[])
     {
         ListAddTypedItem(Actions, ACT_INTERACTIVE, "", NULL);
     }
-    else if (strcasecmp(arg, "list")==0) CommandLineParseListCommand(Actions, Cmd);
+    else if (strcasecmp(arg, "list")==0) CommandLineListCommand(Actions, Cmd);
     else if (strcasecmp(arg, "create")==0) CommandLineParseCreateCommand(Actions, Cmd);
     else if (strcasecmp(arg, "change")==0) CommandLineParseCommand(ACT_CHANGE, Actions, Cmd);
     else if (strcasecmp(arg, "add")==0) CommandLineParseCommand(ACT_ADD, Actions, Cmd);
@@ -308,9 +368,12 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "-i")==0)
     {
         arg=CommandLineNext(Cmd);
-        printf("arg: %s\n", arg);
         ListAddTypedItem(Actions, ACT_INTERACTIVE, arg, NULL);
     }
+    else if (strcasecmp(arg, "-?")==0) CommandLinePrintHelp();
+    else if (strcasecmp(arg, "-h")==0) CommandLinePrintHelp();
+    else if (strcasecmp(arg, "-help")==0) CommandLinePrintHelp();
+    else if (strcasecmp(arg, "--help")==0) CommandLinePrintHelp();
 
     return(Actions);
 }

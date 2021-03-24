@@ -8,6 +8,6 @@ char *VNCBuildViewerList(char *RetStr);
 char *VNCGetInfo(char *RetStr, const char *ImageName);
 int VNCSetPassword(const char *ImageName, const char *Password);
 void VNCLaunchViewer(const char *Viewer, ListNode *Config);
-void VNCConnect(const char *ImageName);
+int VNCConnect(const char *ImageName);
 
 #endif

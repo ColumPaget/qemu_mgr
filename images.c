@@ -333,6 +333,10 @@ static char *ImageSetupDisplay(char *RetStr, ListNode *Config)
     {
         VNCSetup=ImageStartParseVNC(VNCSetup, ptr);
         RetStr=MCatStr(RetStr, " -display vnc=", VNCSetup, NULL);
+    	ptr=ParserGetValue(Config, "password");
+        if (StrValid(ptr)) RetStr=MCatStr(RetStr, ",password", NULL);
+
+
         SetVar(Config, "vnc-endpoint", VNCSetup);
         ptr=ParserGetValue(Config, "vncviewer-language");
         if (StrValid(ptr)) RetStr=MCatStr(RetStr, " -k ", ptr, " ", NULL);
@@ -628,40 +632,6 @@ int ImageDriveBackup(const char *ImageName, const char *Options)
     Destroy(Tempstr);
 }
 
-
-void ImagesList(const char *Tag, const char *ListType)
-{
-    char *Tempstr=NULL, *RunInfo=NULL, *Name=NULL;
-    glob_t Glob;
-    TImageInfo *ImageInfo;
-    ListNode *ImageConf;
-    int i;
-
-    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/*.qemu_mgr", NULL);
-    glob(Tempstr, 0, 0, &Glob);
-    for (i=0; i < Glob.gl_pathc; i++)
-    {
-        Name=CopyStr(Name, GetBasename(Glob.gl_pathv[i]));
-        StrRTruncChar(Name, '.');
-        ImageConf=ImageConfigLoad(Name);
-        ImageInfo=ImageGetRunningInfo(Name);
-        if (ImageInfo)
-        {
-            RunInfo=CopyStr(RunInfo, "up ");
-            RunInfo=CatStr(RunInfo, GetDateStrFromSecs("%Y/%m/%d %H:%M:%S", ImageInfo->start_time, NULL));
-            ImageInfoDestroy(ImageInfo);
-        }
-        else RunInfo=CopyStr(RunInfo, "   ");
-
-        printf("%20s size=%s mem=%s %s\n", ParserGetValue(ImageConf, "name"), ParserGetValue(ImageConf, "size"), ParserGetValue(ImageConf, "memory"), RunInfo);
-        ParserItemsDestroy(ImageConf);
-    }
-    globfree(&Glob);
-
-    Destroy(Tempstr);
-    Destroy(RunInfo);
-    Destroy(Name);
-}
 
 
 

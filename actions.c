@@ -9,8 +9,6 @@ void ActionPerform(int Action, const char *ImageName, const char *Config)
 {
     TImageInfo *Info;
 
-    printf("%d [%s] [%s]\n", Action, ImageName, Config);
-
     switch (Action)
     {
     case ACT_CREATE:
@@ -51,10 +49,6 @@ void ActionPerform(int Action, const char *ImageName, const char *Config)
 
     case ACT_WAKEUP:
         ImageWakeup(ImageName, Config);
-        break;
-
-    case ACT_LIST_IMAGES:
-        ImagesList(ImageName, Config);
         break;
 
     case ACT_MOUNT:
