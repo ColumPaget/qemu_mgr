@@ -12,7 +12,8 @@ static void ConfigTemplatesInit(const char *Path)
     {
         STREAMWriteLine("'Generic' size=40G memory=2047 machine=pc display=std\n", S);
         STREAMWriteLine("'Win2000' size=40G memory=2047 machine=pc display=std flags='-win2k-hack'\n", S);
-        STREAMWriteLine("'Recent O.S.' size=40G memory=2047 machine=q35 display=virtio disk-controller=virtio guest-audio=ac97\n", S);
+        STREAMWriteLine("'Modern' size=40G memory=2047 machine=q35 display=virtio disk-controller=virtio guest-audio=ac97\n", S);
+        STREAMWriteLine("'microvm' size=40G memory=1024 machine=microvm display=virtio disk-controller=virtio guest-audio=ac97\n", S);
         STREAMClose(S);
     }
 
@@ -25,7 +26,7 @@ char *ConfigTemplatesGetList(char *RetStr)
     STREAM *S;
 
     RetStr=CopyStr(RetStr, "");
-    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/image.defaults", NULL);
+    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/vmtemplates.conf", NULL);
     if (access(Tempstr, F_OK) != 0) ConfigTemplatesInit(Tempstr);
 
     S=STREAMOpen(Tempstr, "r");
@@ -57,7 +58,7 @@ char *ConfigTemplateLoad(char *RetStr, const char *Name)
     const char *ptr;
 
     RetStr=CopyStr(RetStr, "");
-    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/image.defaults", NULL);
+    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/vmtemplates.conf", NULL);
     S=STREAMOpen(Tempstr, "r");
     if (! S) ConfigTemplatesInit(Tempstr);
 
