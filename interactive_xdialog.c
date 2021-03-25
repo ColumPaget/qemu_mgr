@@ -480,9 +480,10 @@ static void XDialogSendText(const char *ImageName)
 
 
 
-void XDialogManageImage(const char *Name, TImageInfo *ImageInfo)
+static int XDialogManageImage(const char *Name, TImageInfo *ImageInfo)
 {
     char *Command=NULL, *Tempstr=NULL;
+		int RetVal=FALSE;
 
     Command=MCopyStr(Command, " --list --title 'Running VM: ", Name, "' --ok-label 'Select' --cancel-label 'Back' --column 'Select Operation' ", NULL);
 
@@ -502,6 +503,8 @@ printf("VNCGI: %s\n", Tempstr);
 
     if (StrValid(Tempstr))
     {
+				RetVal=TRUE;
+
         if (strcmp(Tempstr, "Connect with VNC")==0) VNCConnect(Name);
         else if (strcmp(Tempstr, "Pause")==0) ImagePause(Name, "");
         else if (strcmp(Tempstr, "Resume")==0) ImageResume(Name, "");
@@ -514,7 +517,10 @@ printf("VNCGI: %s\n", Tempstr);
 
     Destroy(Command);
     Destroy(Tempstr);
+
+return(RetVal);
 }
+
 
 void XDialogStartImage(const char *Name)
 {
@@ -598,7 +604,7 @@ int XDialogSetup(const char *SetupInfo)
         {
             ptr=GetToken(Tempstr, " ", &Name, GETTOKEN_QUOTES);
             ImageInfo=ImageGetRunningInfo(Name);
-            if (ImageInfo) XDialogManageImage(Name, ImageInfo);
+            if (ImageInfo) while (XDialogManageImage(Name, ImageInfo));
             else XDialogStartImage(Name);
         }
     }

@@ -15,7 +15,7 @@ int ImageScreenshot(const char *ImageName, const char *Options)
         ptr=GetNameValuePair(ptr, "\\S", "=", &Name, &Value);
     }
 
-    if (! StrValid(Path)) Path=FormatStr(Path, "%s-%s.pmm", ImageName, GetDateStr("%Y%m%d.%H:%M:%S", NULL));
+    if (! StrValid(Path)) Path=FormatStr(Path, "%s-%s.pnm", ImageName, GetDateStr("%Y%m%d.%H:%M:%S", NULL));
     Value=MCopyStr(Value, "{\"execute\": \"screendump\", \"arguments\": {\"filename\": \"", Path, "\"}}\n");
     Qmp=QMPTransact(ImageName, Value);
 
