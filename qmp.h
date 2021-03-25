@@ -12,6 +12,7 @@ int QMPSetVNCPassword(const char *ImageName, const char *Password);
 int QMPIsError(ListNode *Qmp);
 
 void QMPSendKey(const char *ImageName, const char *Config);
+void QMPSendString(const char *ImageName, const char *String);
 void QMPSendText(const char *ImageName);
 
 #endif

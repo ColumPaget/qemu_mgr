@@ -333,7 +333,7 @@ static char *ImageSetupDisplay(char *RetStr, ListNode *Config)
     {
         VNCSetup=ImageStartParseVNC(VNCSetup, ptr);
         RetStr=MCatStr(RetStr, " -display vnc=", VNCSetup, NULL);
-    	ptr=ParserGetValue(Config, "password");
+        ptr=ParserGetValue(Config, "password");
         if (StrValid(ptr)) RetStr=MCatStr(RetStr, ",password", NULL);
 
 

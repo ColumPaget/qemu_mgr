@@ -20,7 +20,6 @@ char *VNCBuildViewerList(char *RetStr)
         }
         ptr=GetToken(ptr, ",", &Token, 0);
     }
-printf("ViewerList: %s\n", RetStr);
 
     Destroy(Tempstr);
     Destroy(Token);
@@ -35,13 +34,11 @@ int VNCSetPassword(const char *ImageName, const char *Password)
     char *Tempstr=NULL;
 
     Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"change-vnc-password\", \"arguments\": { \"password\": \"", Password, "\" } }\n", NULL);
-printf("VNCSETPASS: %s\n", Tempstr);
     Qmp=QMPTransact(ImageName, Tempstr);
     if (QMPIsError(Qmp))
     {
         //try again with deprecated 'change' command
         Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"change\", \"arguments\": { \"device\": \"vnc\", \"target\": \"password\", \"arg\": \"", Password, "\" } }\n", NULL);
-printf("VNCSETPASS: %s\n", Tempstr);
         Qmp=QMPTransact(ImageName, Tempstr);
     }
 
@@ -65,12 +62,17 @@ char *VNCGetInfo(char *RetStr, const char *ImageName)
     if (! QMPIsError(Qmp))
     {
         Response=ParserOpenItem(Qmp, "/return");
+				
+        ptr=ParserGetValue(Response, "service");
+				if (StrValid(ptr))
+				{
         RetStr=MCopyStr(RetStr, ParserGetValue(Response, "family"), ":", NULL);
         RetStr=MCatStr(RetStr, ParserGetValue(Response, "host"), ":", NULL);
 
         ptr=ParserGetValue(Response, "service");
         Tempstr=FormatStr(Tempstr, "%d", atoi(ptr) - 5900);
         RetStr=CatStr(RetStr, Tempstr);
+				}
     }
 
     ParserItemsDestroy(Qmp);
@@ -89,8 +91,8 @@ void VNCLaunchViewer(const char *ViewerList, ListNode *Config)
     ptr=GetToken(ViewerList, ",", &Viewer, 0);
     while (ptr)
     {
-    if (access(Viewer, X_OK)==0) break;
-    ptr=GetToken(ptr, ",", &Viewer, 0);
+        if (access(Viewer, X_OK)==0) break;
+        ptr=GetToken(ptr, ",", &Viewer, 0);
     }
 
     if (Config) ptr=ParserGetValue(Config, "vncviewer-delay");
@@ -119,7 +121,6 @@ int VNCConnect(const char *ImageName)
     ListNode *Vars;
 
     Tempstr=VNCGetInfo(Tempstr, ImageName);
-    printf("VNCC: %s\n", Tempstr);
     Vars=ListCreate();
     SetVar(Vars, "vnc-endpoint", Tempstr);
     Tempstr=VNCBuildViewerList(Tempstr);

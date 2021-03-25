@@ -267,6 +267,24 @@ void QMPSendKey(const char *ImageName, const char *Options)
 }
 
 
+void QMPSendString(const char *ImageName, const char* String)
+{
+STREAM *Out;
+char *CharStr=NULL;
+int inchar, mods;
+const char *ptr;
+
+    Out=QMPOpen(ImageName);
+		for (ptr=String; *ptr != '\0'; ptr++)
+		{
+						inchar=*ptr;
+            QMPTranslateKey(inchar, &CharStr, &mods);
+            QMPWriteKey(Out, CharStr, mods);
+		}
+		STREAMClose(Out);
+
+		Destroy(CharStr);
+}
 
 void QMPSendText(const char *ImageName)
 {

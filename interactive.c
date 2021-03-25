@@ -45,7 +45,6 @@ int InteractiveChooseMode(const char *Hint)
         else Config->InteractMode=IA_TERMINAL;
     }
 
-    printf("IA: %d %s\n", Config->InteractMode, Hint);
     return(Config->InteractMode);
 }
 
@@ -54,7 +53,6 @@ const char *InteractiveQueryRootPassword(const char *Title)
 {
     STREAM *StdIn;
 
-    printf("IAQRP: [%d] %s\n", Config->InteractMode, Title);
     switch (Config->InteractMode)
     {
     case IA_XDIALOG:

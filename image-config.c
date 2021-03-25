@@ -9,13 +9,13 @@ char *ImageConfigExpand(char *RetStr, ListNode *ConfTree)
     Curr=ListGetNext(Values);
     while (Curr)
     {
-	if (StrValid(Curr->Tag))
-	{
-	ptr=(const char *) Curr->Item;
-	if (! ptr) ptr="";
-	
-        RetStr=MCatStr(RetStr, Curr->Tag, "='", ptr, "' ", NULL);
-	}
+        if (StrValid(Curr->Tag))
+        {
+            ptr=(const char *) Curr->Item;
+            if (! ptr) ptr="";
+
+            RetStr=MCatStr(RetStr, Curr->Tag, "='", ptr, "' ", NULL);
+        }
         Curr=ListGetNext(Curr);
     }
 
