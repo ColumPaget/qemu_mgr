@@ -5,7 +5,9 @@
 #include "image-config.h"
 #include "actions.h"
 #include "vnc.h"
+#include "qmp.h"
 #include "devices.h"
+#include "screenshot.h"
 #include <wait.h>
 
 
@@ -472,7 +474,7 @@ static void XDialogSendText(const char *ImageName)
 
     Command=MCopyStr(Command, " --entry --title 'qemu_mgr: Send Text' --text 'Type text to send to ", ImageName, " '", NULL);
     Tempstr=XDialogRun(Tempstr, Command, FALSE);
-		if (StrValid(Tempstr)) QMPSendString(ImageName, Tempstr);
+    if (StrValid(Tempstr)) QMPSendString(ImageName, Tempstr);
 
     Destroy(Command);
     Destroy(Tempstr);
@@ -483,13 +485,12 @@ static void XDialogSendText(const char *ImageName)
 static int XDialogManageImage(const char *Name, TImageInfo *ImageInfo)
 {
     char *Command=NULL, *Tempstr=NULL;
-		int RetVal=FALSE;
+    int RetVal=FALSE;
 
     Command=MCopyStr(Command, " --list --title 'Running VM: ", Name, "' --ok-label 'Select' --cancel-label 'Back' --column 'Select Operation' ", NULL);
 
-		Tempstr=VNCGetInfo(Tempstr, Name);
-printf("VNCGI: %s\n", Tempstr);
-		if (StrValid(Tempstr)) Command=CatStr(Command, "'Connect with VNC' ");
+    Tempstr=VNCGetInfo(Tempstr, Name);
+    if (StrValid(Tempstr)) Command=CatStr(Command, "'Connect with VNC' ");
 
     if (ImageInfo->flags & IMG_PAUSED) Command=CatStr(Command, "'Resume' ");
     else Command=CatStr(Command, "'Pause' ");
@@ -503,7 +504,7 @@ printf("VNCGI: %s\n", Tempstr);
 
     if (StrValid(Tempstr))
     {
-				RetVal=TRUE;
+        RetVal=TRUE;
 
         if (strcmp(Tempstr, "Connect with VNC")==0) VNCConnect(Name);
         else if (strcmp(Tempstr, "Pause")==0) ImagePause(Name, "");
@@ -511,14 +512,14 @@ printf("VNCGI: %s\n", Tempstr);
         else if (strcmp(Tempstr, "Reboot")==0) ImageReboot(Name, "");
         else if (strcmp(Tempstr, "Shutdown")==0) ImageStop(Name, "");
         else if (strcmp(Tempstr, "Wakeup")==0) ImageWakeup(Name, "");
-				else if (strcmp(Tempstr, "Screenshot")==0) ImageScreenshot(Name, "");
-				else if (strcmp(Tempstr, "Send Text")==0) XDialogSendText(Name);
+        else if (strcmp(Tempstr, "Screenshot")==0) ImageScreenshot(Name, "");
+        else if (strcmp(Tempstr, "Send Text")==0) XDialogSendText(Name);
     }
 
     Destroy(Command);
     Destroy(Tempstr);
 
-return(RetVal);
+    return(RetVal);
 }
 
 

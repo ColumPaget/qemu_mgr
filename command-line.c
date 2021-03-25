@@ -358,6 +358,10 @@ static void CommandLinePrintHelp()
     printf("	read text line-by-line from stdin and send it to a running vm.\n");
     printf("qemu_mgr send-key	<vm name> <key name>\n");
     printf("	send keystroke 'key name' to a running vm.\n");
+    printf("qemu_mgr media-add <vm name> <vm device> <path>\n");
+    printf("	copy items in 'path' to a file and load/mount it into 'device' in the vm. See 'qemu_mgr --help media' for more info.\n");
+    printf("qemu_mgr media-del <vm name> <vm device>\n");
+    printf("	remove/unmount file in 'device' in the vm. See 'qemu_mgr --help-media' for more info.\n");
     printf("qemu_mgr screenshot <vm name> <options>\n");
     printf("	screenshot a running vm.\n");
     printf("\n");
@@ -371,7 +375,7 @@ static void CommandLinePrintHelp()
     printf(" -dc  <type>        disk-controller. One of 'virtio', 'scsi' or 'ide'.\n");
     printf(" -machine <type>    machine type: one of 'pc', 'q35', 'isapc' or 'microvm'.\n");
     printf(" -mach    <type>    machine type: one of 'pc', 'q35', 'isapc' or 'microvm'.\n");
-    printf(" -display <type>    display type: one of 'std', 'virtio', 'qxl', 'rage128p', 'rv100', 'vnc' or 'none'. The 'vnc' display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
+    printf(" -display <type>    display type: one of 'std', 'virtio', 'qxl', 'rage128p', 'rv100', 'vnc' or 'none'. See 'qemu_mgr --help-vnc' for more info on VNC.\n");
     printf("	-prealloc <yes|no>    Preallocate memory to the vm (rather than have the vm grab memory as it needs it)\n");
     printf("	-fullscreen <yes|no>  Fullscreen graphics\n");
     printf("	-password <secret>    Password for use with VNC\n");
@@ -379,6 +383,18 @@ static void CommandLinePrintHelp()
     printf("	-pw       <secret>    Password for use with VNC\n");
     printf("	-delay   <seconds>    Connect delay for VNC viewers. This can be used to prevent connecting to early and getting disconnected while the VM starts up.\n");
 }
+
+
+static void CommandLinePrintMediaHelp()
+{
+
+}
+
+static void CommandLinePrintVNCHelp()
+{
+    printf("The display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
+}
+
 
 ListNode *CommandLineParse(int argc, char *argv[])
 {
@@ -402,7 +418,6 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "stop")==0) CommandLineParseCommand(ACT_STOP, Actions, Cmd);
     else if (strcasecmp(arg, "media-add")==0) CommandLineParseMediaAddCommand(Actions, Cmd);
     else if (strcasecmp(arg, "media-del")==0) CommandLineParseMediaRemoveCommand(Actions, Cmd);
-    else if (strcasecmp(arg, "media-remove")==0) CommandLineParseMediaRemoveCommand(Actions, Cmd);
     else if (strcasecmp(arg, "snapshot")==0) CommandLineParseSnapshotCommand(Actions, Cmd);
     else if (strcasecmp(arg, "backup")==0) CommandLineParseBackupCommand(Actions, Cmd);
     else if (strcasecmp(arg, "info")==0) CommandLineParseInfoCommand(Actions, Cmd);

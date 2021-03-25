@@ -62,17 +62,17 @@ char *VNCGetInfo(char *RetStr, const char *ImageName)
     if (! QMPIsError(Qmp))
     {
         Response=ParserOpenItem(Qmp, "/return");
-				
-        ptr=ParserGetValue(Response, "service");
-				if (StrValid(ptr))
-				{
-        RetStr=MCopyStr(RetStr, ParserGetValue(Response, "family"), ":", NULL);
-        RetStr=MCatStr(RetStr, ParserGetValue(Response, "host"), ":", NULL);
 
         ptr=ParserGetValue(Response, "service");
-        Tempstr=FormatStr(Tempstr, "%d", atoi(ptr) - 5900);
-        RetStr=CatStr(RetStr, Tempstr);
-				}
+        if (StrValid(ptr))
+        {
+            RetStr=MCopyStr(RetStr, ParserGetValue(Response, "family"), ":", NULL);
+            RetStr=MCatStr(RetStr, ParserGetValue(Response, "host"), ":", NULL);
+
+            ptr=ParserGetValue(Response, "service");
+            Tempstr=FormatStr(Tempstr, "%d", atoi(ptr) - 5900);
+            RetStr=CatStr(RetStr, Tempstr);
+        }
     }
 
     ParserItemsDestroy(Qmp);

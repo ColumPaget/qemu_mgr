@@ -3,6 +3,6 @@
 
 #include "common.h"
 
-int VT100DialogSetup(const char *SetupInfo);
+int QEMUMGR_TerminalDialogSetup(const char *SetupInfo);
 
 #endif

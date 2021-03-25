@@ -71,7 +71,7 @@ char *ConfigTemplateLoad(char *RetStr, const char *Name)
             StripLeadingWhitespace(Tempstr);
             StripTrailingWhitespace(Tempstr);
             ptr=GetToken(Tempstr, "\\S", &Token, GETTOKEN_QUOTES);
-            if (strcmp(Token, Name)==0)
+            if (strcasecmp(Token, Name)==0)
             {
                 RetStr=CopyStr(RetStr, ptr);
                 break;
