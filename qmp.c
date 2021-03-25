@@ -132,7 +132,8 @@ static void QMPTranslateKey(int inchar, char **CharStr, int *mods)
         *CharStr=CopyStr(*CharStr, "semicolon");
         break;
     case ':':
-        *CharStr=CopyStr(*CharStr, "colon");
+        (*mods) |= KEYMOD_SHIFT;
+        *CharStr=CopyStr(*CharStr, "semicolon");
         break;
     case '-':
         *CharStr=CopyStr(*CharStr, "minus");
@@ -215,26 +216,19 @@ static void QMPWriteKey(STREAM *Dest, const char *KeyName, int mods)
 }
 
 
-void QMPSendKey(const char *ImageName, const char *Options)
+void QMPSendKey(const char *ImageName, const char *Input)
 {
     char *Name=NULL, *Value=NULL, *KeyStr=NULL;
     const char *ptr;
     int mods=0;
     STREAM *In, *Out;
 
-    ptr=GetNameValuePair(Options, "\\S", "=", &Name, &Value);
-    while (ptr)
-    {
-        if (strcmp(Name, "key")==0) KeyStr=CopyStr(KeyStr, Value);
-        ptr=GetNameValuePair(ptr, "\\S", "=", &Name, &Value);
-    }
-
     In=STREAMFromDualFD(0,1);
     STREAMSetTimeout(In, 0);
     Out=QMPOpen(ImageName);
     if (Out)
     {
-        ptr=KeyStr;
+        ptr=Input;
         if (ptr)
         {
             if (strncmp(ptr, "shift-", 6)==0)
@@ -254,6 +248,12 @@ void QMPSendKey(const char *ImageName, const char *Options)
                 mods |= KEYMOD_ALT;
                 ptr+=4;
             }
+
+		if (StrLen(ptr)==1) 
+		{
+			QMPTranslateKey(*ptr, &KeyStr, &mods);
+			ptr=KeyStr;
+		}
 
             if (ptr) QMPWriteKey(Out, ptr, mods);
         }

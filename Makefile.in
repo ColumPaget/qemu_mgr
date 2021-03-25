@@ -1,4 +1,4 @@
-OBJ=command-line.o os-commands.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o @LIBUSEFUL_BUNDLED@
+OBJ=common.o command-line.o os-commands.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o @LIBUSEFUL_BUNDLED@
 
 FLAGS=-g @DEFS@
 LIBS=@LIBS@ @LIBUSEFUL_BUNDLED@

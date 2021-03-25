@@ -8,6 +8,8 @@
 void ActionPerform(int Action, const char *ImageName, const char *Config)
 {
     TImageInfo *Info;
+	char *Tempstr=NULL;
+    const char *ptr;
 
     switch (Action)
     {
@@ -76,8 +78,15 @@ void ActionPerform(int Action, const char *ImageName, const char *Config)
         break;
 
     case ACT_SEND_KEY:
-        QMPSendKey(ImageName, Config);
+	Tempstr=GetNamedValue(Tempstr, Config, "value");
+        if (StrValid(Tempstr)) QMPSendKey(ImageName, Tempstr);
         break;
+
+    case ACT_SEND_STRING:
+	Tempstr=GetNamedValue(Tempstr, Config, "value");
+        if (StrValid(Tempstr)) QMPSendString(ImageName, Tempstr);
+        break;
+
 
     case ACT_INFO:
         Info=ImageGetRunningInfo(ImageName);
@@ -90,5 +99,6 @@ void ActionPerform(int Action, const char *ImageName, const char *Config)
 
     }
 
+Destroy(Tempstr);
 }
 

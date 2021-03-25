@@ -18,4 +18,6 @@ char *SoundDevices;
 
 TConfig *Config;
 
+char *GetNamedValue(char *RetStr, const char *Config,  const char *RequestedName);
+
 #endif

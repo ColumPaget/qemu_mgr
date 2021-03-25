@@ -252,16 +252,16 @@ static void CommandLineParseSnapshotCommand(ListNode *Actions, CMDLINE *Cmd)
 
 
 
-static void CommandLineParseSendKeyCommand(ListNode *Actions, CMDLINE *Cmd)
+static void CommandLineParseSendCommand(ListNode *Actions, int SendType, CMDLINE *Cmd)
 {
     const char *arg;
     char *Name=NULL, *Config=NULL;
 
     Name=CopyStr(Name, CommandLineNext(Cmd));
     arg=CommandLineNext(Cmd);
-    Config=MCatStr(Config, "key=", arg, " ", NULL);
+    Config=MCatStr(Config, "value=", arg, " ", NULL);
 
-    ListAddTypedItem(Actions, ACT_SEND_KEY, Name, Config);
+    ListAddTypedItem(Actions, SendType, Name, Config);
 
     Destroy(Name);
 
@@ -423,7 +423,8 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "info")==0) CommandLineParseInfoCommand(Actions, Cmd);
     else if (strcasecmp(arg, "list-usb")==0) CommandLineListUSB();
     else if (strcasecmp(arg, "send-text")==0) CommandLineParseCommand(ACT_SEND_TEXT, Actions, Cmd);
-    else if (strcasecmp(arg, "send-key")==0) CommandLineParseSendKeyCommand(Actions, Cmd);
+    else if (strcasecmp(arg, "send-key")==0) CommandLineParseSendCommand(Actions, ACT_SEND_KEY, Cmd);
+    else if (strcasecmp(arg, "send-string")==0) CommandLineParseSendCommand(Actions, ACT_SEND_STRING, Cmd);
     else if (strcasecmp(arg, "screenshot")==0) CommandLineParseScreenshotCommand(Actions, Cmd);
     else if (strcasecmp(arg, "list-templates")==0) CommandLineListTemplates();
     else if (strcasecmp(arg, "vnc")==0) VNCConnect(CommandLineNext(Cmd));
