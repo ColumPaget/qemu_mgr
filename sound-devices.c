@@ -14,7 +14,7 @@ char *FindSoundDevices(char *RetStr)
     glob("/dev/dsp*", 0, 0, &Glob);
     for (i=0; i < Glob.gl_pathc; i++)
     {
-        RetStr=MCatStr(RetStr, "|oss:", Glob.gl_pathv[i], NULL);
+        RetStr=MCatStr(RetStr, ",oss:", Glob.gl_pathv[i], NULL);
     }
 
     S=STREAMOpen("/proc/asound/cards", "r");
@@ -24,7 +24,7 @@ char *FindSoundDevices(char *RetStr)
         StripLeadingWhitespace(Tempstr);
         StripTrailingWhitespace(Tempstr);
         ptr=GetToken(Tempstr, " ", &Token, 0);
-        RetStr=MCatStr(RetStr, "|alsa:", Token, ":", NULL);
+        RetStr=MCatStr(RetStr, ",alsa:", Token, ":", NULL);
         ptr=GetToken(ptr, ":", &Token, 0);
         while (isspace(*ptr)) ptr++;
         RetStr=CatStr(RetStr, ptr);

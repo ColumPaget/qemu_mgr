@@ -150,41 +150,6 @@ void ImageChange(const char *ImageName, const char *Options)
 
 
 
-void ImageCreate(const char *ImageName, const char *Config)
-{
-    ListNode *ConfTree;
-    char *Tempstr=NULL, *Path=NULL;
-    const char *p_Src;
-
-    Path=MCopyStr(Path, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".img", NULL);
-    Tempstr=MCopyStr(Tempstr, Config, " image=", Path, NULL);
-    ImageAdd(ImageName, Tempstr);
-    ConfTree=ImageConfigLoad(ImageName);
-
-    p_Src=ParserGetValue(ConfTree, "iso");
-    if (StrValid(p_Src))
-    {
-        Tempstr=MCopyStr(Tempstr, "qemu-img create -f qcow2 ", Path,  " ", ParserGetValue(ConfTree, "size"), NULL);
-        fprintf(stderr, "CREATE: %s\n", Tempstr);
-        system(Tempstr);
-
-        Tempstr=MCopyStr(Tempstr, "qemu-system-x86_64", " ", " -m 2047 -enable-kvm ", ParserGetValue(ConfTree, "image"), " -cdrom '", p_Src, "'", NULL);
-        Spawn(Tempstr, "");
-    }
-    else
-    {
-        p_Src=ParserGetValue(ConfTree, "src-img");
-
-        Tempstr=MCopyStr(Tempstr, "qemu-img convert -O qcow2 ",  " '", p_Src, "' '", ParserGetValue(ConfTree, "image"), "'", NULL);
-        fprintf(stderr, "RUN: %s\n", Tempstr);
-        system(Tempstr);
-    }
-
-    Destroy(Tempstr);
-    Destroy(Path);
-}
-
-
 
 
 static char *ImageStartParseVNC(char *RetStr, const char *Config)
@@ -356,6 +321,8 @@ static char *ImageSetupDisplay(char *RetStr, ListNode *Config)
     return(RetStr);
 }
 
+
+
 static char *ImageSetupUser(char *RetStr, ListNode *Config)
 {
     const char *ptr;
@@ -368,6 +335,55 @@ static char *ImageSetupUser(char *RetStr, ListNode *Config)
 
     return(RetStr);
 }
+
+
+static char *ImageSetupKVM(char *RetStr)
+{
+if (access("/dev/kvm", F_OK) != 0) printf("No /dev/kvm. Cannot activate KVM\n");
+else if (access("/dev/kvm", W_OK) != 0) printf("Permission denied to /dev/kvm. Cannot activate KVM\n");
+else RetStr=CatStr(RetStr, " -enable-kvm -cpu host ");
+
+return(RetStr);
+}
+
+
+void ImageCreate(const char *ImageName, const char *Config)
+{
+    ListNode *ConfTree;
+    char *Tempstr=NULL, *Path=NULL;
+    const char *p_Src;
+
+    Path=MCopyStr(Path, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".img", NULL);
+    Tempstr=MCopyStr(Tempstr, Config, " image=", Path, NULL);
+    ImageAdd(ImageName, Tempstr);
+    ConfTree=ImageConfigLoad(ImageName);
+
+    p_Src=ParserGetValue(ConfTree, "iso");
+    if (StrValid(p_Src))
+    {
+        Tempstr=MCopyStr(Tempstr, "qemu-img create -f qcow2 ", Path,  " ", ParserGetValue(ConfTree, "size"), NULL);
+        fprintf(stderr, "CREATE: %s\n", Tempstr);
+        system(Tempstr);
+
+        Tempstr=MCopyStr(Tempstr, "qemu-system-x86_64", " ", " -m 2047 ", NULL);
+				Tempstr=ImageSetupKVM(Tempstr);
+				Tempstr=MCatStr(Tempstr, " ", ParserGetValue(ConfTree, "image"), " -cdrom '", p_Src, "'", NULL);
+        Spawn(Tempstr, "");
+    }
+    else
+    {
+        p_Src=ParserGetValue(ConfTree, "src-img");
+
+        Tempstr=MCopyStr(Tempstr, "qemu-img convert -O qcow2 ",  " '", p_Src, "' '", ParserGetValue(ConfTree, "image"), "'", NULL);
+        fprintf(stderr, "RUN: %s\n", Tempstr);
+        system(Tempstr);
+    }
+
+    Destroy(Tempstr);
+    Destroy(Path);
+}
+
+
 
 int ImageStart(const char *ImageName, const char *Options)
 {
@@ -384,7 +400,8 @@ int ImageStart(const char *ImageName, const char *Options)
     ImageConfigUpdate(Config, Options);
     Path=CopyStr(Path, ParserGetValue(Config, "image"));
 
-    Command=MCopyStr(Command, "qemu-system-x86_64", " -name ", ImageName,  " -enable-kvm -cpu host ", NULL);
+    Command=MCopyStr(Command, "qemu-system-x86_64", " -name ", ImageName,  NULL);
+		Command=ImageSetupKVM(Command);
 
     ptr=ParserGetValue(Config, "smp");
     //if (StrValid(ptr)) Command=MCatStr(Command, " -smp sockets=1,dies=1,cores=", ptr, NULL);
