@@ -8,7 +8,7 @@ ListNode *CommandPaths=NULL;
 void FindOSCommands()
 {
     char *Tempstr=NULL, *File=NULL;
-    const char *Commands[]= {"ifconfig", "iptables", "route", "ip", "qemu-system-x86_64", "qarma", "zenity", "yad", "xdialog", "vncviewer", "tightvnc", "tigervnc", "mkisofs", "tar", "zip", NULL};
+    const char *Commands[]= {"ifconfig", "iptables", "route", "ip", "qemu-system-x86_64", "qarma", "zenity", "yad", "xdialog", "vncviewer", "tightvnc", "tigervnc", "mkisofs", "tar", "zip", "7za", NULL};
     int i;
 
     if (! CommandPaths) CommandPaths=ListCreate();

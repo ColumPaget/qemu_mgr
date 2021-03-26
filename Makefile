@@ -1,4 +1,4 @@
-OBJ=common.o command-line.o os-commands.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o 
+OBJ=common.o command-line.o os-commands.o kvm.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o 
 
 FLAGS=-g -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -D_FILE_OFFSET_BITS=64 -DHAVE_LIBUSEFUL_4=1 -DHAVE_LIBSSL=1 -DHAVE_LIBCRYPTO=1
 LIBS=-lcrypto -lssl -lUseful-4  
@@ -8,6 +8,9 @@ all: $(OBJ)
 
 common.o: common.h common.c
 	gcc $(FLAGS) -c common.c
+
+kvm.o: kvm.h kvm.c
+	gcc $(FLAGS) -c kvm.c
 
 devices.o: devices.h devices.c
 	gcc $(FLAGS) -c devices.c

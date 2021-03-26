@@ -249,11 +249,11 @@ void QMPSendKey(const char *ImageName, const char *Input)
                 ptr+=4;
             }
 
-		if (StrLen(ptr)==1) 
-		{
-			QMPTranslateKey(*ptr, &KeyStr, &mods);
-			ptr=KeyStr;
-		}
+            if (StrLen(ptr)==1)
+            {
+                QMPTranslateKey(*ptr, &KeyStr, &mods);
+                ptr=KeyStr;
+            }
 
             if (ptr) QMPWriteKey(Out, ptr, mods);
         }

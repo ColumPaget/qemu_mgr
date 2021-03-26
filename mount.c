@@ -16,34 +16,40 @@ void MountDirectory(const char *ImageName, const char *MountDevice, const char *
         {
             FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Dir), ".iso", NULL);
             Tempstr=MCopyStr(Tempstr, ptr, " -r -J -o '", FSPath, "' ", QuotedDir, NULL);
-            printf("MKFS: %s\n", Tempstr);
             system(Tempstr);
         }
     }
-
-    if (strcmp(Format, "tgz")==0)
+    else if (strcmp(Format, "tgz")==0)
     {
         ptr=OSCommandFindPath("tar");
         if (StrValid(ptr))
         {
             FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Dir), ".tgz", NULL);
             Tempstr=MCopyStr(Tempstr, ptr, " -zcf '", FSPath, "' ", QuotedDir, NULL);
-            printf("TAR: %s\n", Tempstr);
             system(Tempstr);
         }
     }
-
-    if (strcmp(Format, "zip")==0)
+    else if (strcmp(Format, "zip")==0)
     {
         ptr=OSCommandFindPath("zip");
         if (StrValid(ptr))
         {
             FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Dir), ".tgz", NULL);
             Tempstr=MCopyStr(Tempstr, ptr, " -r '", FSPath, "' ", QuotedDir, NULL);
-            printf("ZIP: %s\n", Tempstr);
             system(Tempstr);
         }
     }
+    else if (strcmp(Format, "7za")==0)
+    {
+        ptr=OSCommandFindPath("7za");
+        if (StrValid(ptr))
+        {
+            FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Dir), ".7z", NULL);
+            Tempstr=MCopyStr(Tempstr, ptr, " a -r '", FSPath, "' ", QuotedDir, NULL);
+            system(Tempstr);
+        }
+    }
+
 
 
     if (StrValid(FSPath))

@@ -203,6 +203,7 @@ static void CommandLineParseMediaAddCommand(ListNode *Actions, CMDLINE *Cmd)
         (strncmp(arg, "tgz:", 4)==0) ||
         (strncmp(arg, "txz:", 4)==0) ||
         (strncmp(arg, "zip:", 4)==0) ||
+        (strncmp(arg, "7za:", 4)==0) ||
         (strncmp(arg, "iso:", 4)==0)
     ) ListAddTypedItem(Actions, ACT_MOUNT, Name, Config);
     else ListAddTypedItem(Actions, ACT_MEDIA_ADD, Name, Config);
@@ -364,6 +365,16 @@ static void CommandLinePrintHelp()
     printf("	remove/unmount file in 'device' in the vm. See 'qemu_mgr --help-media' for more info.\n");
     printf("qemu_mgr screenshot <vm name> <options>\n");
     printf("	screenshot a running vm.\n");
+    printf("qemu_mgr -?\n");
+    printf("	print this help\n");
+    printf("qemu_mgr -help\n");
+    printf("	print this help\n");
+    printf("qemu_mgr --help\n");
+    printf("	print this help\n");
+    printf("qemu_mgr --help-vnc\n");
+    printf("	print help for VNC display\n");
+    printf("qemu_mgr --help-media\n");
+    printf("	print help for mounting files/directories into a running vm\n");
     printf("\n");
     printf("Options\nMost options can be expressed either as '-iso installer.iso' or 'iso=installer.iso'. Some options, like -iso, -img or -size only relate to the VM creation and installation step\n\n");
     printf(" -iso <path>        specify path to a .iso O.S. installer file for use in setting up a vm\n");
@@ -387,6 +398,21 @@ static void CommandLinePrintHelp()
 
 static void CommandLinePrintMediaHelp()
 {
+printf("Files can be packed into and iso filesystem and mounted as a cdrom, or as a tar or zip file which can then be 'mounted' into any block device in unix\n");
+printf("ISO filesystem support requires the mkisofs utility to be available. This method has been seen to work with windows guests. You can either pick the appropriate option from the interactive menus ones a VM is running, or else use the media-add command:\n\n");
+printf("  qemu_mgr media-add MyWindowsVM ide-cd0 iso:/home/music\n\n");
+printf("This will build a .iso file with the contents of /home/music and then 'insert' it into the qemu cd-rom block device 'ide-cd0' in the vm 'MyWindowsVM'\n\n");
+printf("For unix hosts a trick can be used where any kind of file can be mounted in any qemu block device, and extracted in the guest VM. For example\n\n");
+printf("  qemu_mgr media-add MyLinuxVM fd0 tgz:/home/music\n\n");
+printf("Will use the tar utility to create a gzipped tar file and 'insert' it into floppy drive fd0. This can then be extracted in the guest with\n\n");
+printf("  tar -zcf /dev/fd0\n\n");
+printf("qemu_mgr recognizes the following prefixes to identify the kind of file to be made and mounted\n\n");
+printf("   iso:  iso9660 filesystem (requires mkisofs utility)\n");
+printf("   zip:  pkzip archive file (requires zip utility)\n");
+printf("   tgz:  gzipped tar archive file (requires tar and gzip utilities)\n");
+printf("   txz:  xzipped tar archive file (requires tar and xz utilities)\n");
+printf("   7za:  7zip archive file (requires 7za utility)\n\n");
+printf("With no prefix the path is treated as a file to be mounted (which will fail if it's a directory). This allows mounting any type of file into a block device in the VM.\n");
 
 }
 
@@ -437,6 +463,8 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "-h")==0) CommandLinePrintHelp();
     else if (strcasecmp(arg, "-help")==0) CommandLinePrintHelp();
     else if (strcasecmp(arg, "--help")==0) CommandLinePrintHelp();
+    else if (strcasecmp(arg, "--help-vnc")==0) CommandLinePrintVNCHelp();
+    else if (strcasecmp(arg, "--help-media")==0) CommandLinePrintMediaHelp();
 
     return(Actions);
 }

@@ -13,27 +13,27 @@
 
 char *XDialogNewForm(char *RetStr, const char *Title, const char *Text)
 {
-if (strcasecmp(Config->DialogCmd, "yad")==0) 
-{
-	RetStr=MCopyStr(RetStr, " --form --title '", Title, "' ", NULL);
-}
-else 
-{
-	RetStr=MCopyStr(RetStr, " --forms --title '", Title, "' ", NULL);
-}
+    if (strcasecmp(Config->DialogCmd, "yad")==0)
+    {
+        RetStr=MCopyStr(RetStr, " --form --title '", Title, "' ", NULL);
+    }
+    else
+    {
+        RetStr=MCopyStr(RetStr, " --forms --title '", Title, "' ", NULL);
+    }
 
-if (StrValid(Text)) RetStr=MCatStr(RetStr, " --text '", Text, "' ", NULL);
+    if (StrValid(Text)) RetStr=MCatStr(RetStr, " --text '", Text, "' ", NULL);
 
-return(RetStr);
+    return(RetStr);
 }
 
 
 char *XDialogNewFormEntry(char *RetStr, const char *Title)
 {
-if (strcasecmp(Config->DialogCmd, "yad")==0) RetStr=MCatStr(RetStr, " --field='", Title, "' '' ", NULL);
-else RetStr=MCatStr(RetStr, " --add-entry '", Title, "' ", NULL);
+    if (strcasecmp(Config->DialogCmd, "yad")==0) RetStr=MCatStr(RetStr, " --field='", Title, "' '' ", NULL);
+    else RetStr=MCatStr(RetStr, " --add-entry '", Title, "' ", NULL);
 
-return(RetStr);
+    return(RetStr);
 }
 
 
@@ -66,16 +66,16 @@ static char *XDialogFormatComboValues(char *RetStr, ListNode *ImageConf, const c
     else ComboValues=CopyStr(ComboValues, Options);
 
 
-		if (strcasecmp(Config->DialogCmd, "yad")==0) 
-		{
-      strrep(ComboValues, ',', '!');
-			RetStr=MCatStr(RetStr, " --field='", Title, ":CB' '", ComboValues, "' ", NULL);
-		}
-		else 
-		{
-      strrep(ComboValues, ',', '|');
-			RetStr=MCatStr(RetStr, " --add-combo '", Title, ":' --combo-values '", ComboValues, "' ",NULL);
-		}
+    if (strcasecmp(Config->DialogCmd, "yad")==0)
+    {
+        strrep(ComboValues, ',', '!');
+        RetStr=MCatStr(RetStr, " --field='", Title, ":CB' '", ComboValues, "' ", NULL);
+    }
+    else
+    {
+        strrep(ComboValues, ',', '|');
+        RetStr=MCatStr(RetStr, " --add-combo '", Title, ":' --combo-values '", ComboValues, "' ",NULL);
+    }
 
     Destroy(ComboValues);
     Destroy(Selected);
@@ -93,8 +93,8 @@ void XDialogFindXDialogCommand(const char *XDialogCommandList)
     char *Token=NULL;
     const char *ptr, *p_Cmd;
 
-		//if we've already found one (or had one set at the command-line), then don't go looking again
-		if (StrLen(Config->DialogCmd)) return;
+    //if we've already found one (or had one set at the command-line), then don't go looking again
+    if (StrLen(Config->DialogCmd)) return;
 
     ptr=GetToken(XDialogCommandList, ",", &Token, 0);
     while (ptr)
@@ -213,8 +213,8 @@ char *XDialogSetupNetwork(char *Setup, const char *NetType)
 
     if (strcmp(NetType, "tap")==0)
     {
-				Command=XDialogNewForm(Command, "Setup TAP Networking", "");
-				Command=XDialogNewFormEntry(Command, "External IP");
+        Command=XDialogNewForm(Command, "Setup TAP Networking", "");
+        Command=XDialogNewFormEntry(Command, "External IP");
         Command=XDialogFormatComboValues(Command, NULL, "tap_local_access", "yes,no", "Mod firewall to access host", FALSE);
         Command=XDialogFormatComboValues(Command, NULL, "tap_remote_access", "yes,no", "Mod firewall to access network", FALSE);
 
@@ -270,14 +270,14 @@ char *XDialogSetupVNC(char *RetStr)
     char *Command=NULL, *Tempstr=NULL, *Token=NULL;
     const char *ptr;
 
-		Command=XDialogNewForm(Command, "Setup VNC", "Enter 127.0.0.1 to only allow connections from localhost.\nEnter 0.0.0.0 to allow connections from any host.\nEnter unix to only allow unix-socket connections");
-		Command=XDialogNewFormEntry(Command, "Allow Host");
-		Command=XDialogNewFormEntry(Command, "Password");
+    Command=XDialogNewForm(Command, "Setup VNC", "Enter 127.0.0.1 to only allow connections from localhost.\nEnter 0.0.0.0 to allow connections from any host.\nEnter unix to only allow unix-socket connections");
+    Command=XDialogNewFormEntry(Command, "Allow Host");
+    Command=XDialogNewFormEntry(Command, "Password");
     Tempstr=VNCBuildViewerList(Tempstr);
     Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Launch Viewer:", FALSE);
     Tempstr=MCopyStr(Tempstr, "default,ar,da,de,de-ch,en-gb,en-us,es,et,fi,fr,fr-be,fr-ch,fr-ca,fo,hu,hr,is,it,ja,mk,lt,lv,no,nl,nl-be,pl,pt,pt-br,ru,sl,sv,th,tr");
     Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Viewer Keyboard Language:", FALSE);
-		Command=XDialogNewFormEntry(Command, "Viewer Startup Delay");
+    Command=XDialogNewFormEntry(Command, "Viewer Startup Delay");
 
     Tempstr=XDialogRun(Tempstr, Command, FALSE);
     ptr=GetToken(Tempstr, "|", &Token, 0);
@@ -342,7 +342,6 @@ char *XDialogSetupPassthrough(char *RetStr)
         strrep(Tempstr, '|', ',');
         RetStr=MCatStr(RetStr, " passthrough='", Tempstr, "' ", NULL);
     }
-    printf("DEVS: %s\n", Tempstr);
 
     Destroy(Command);
     Destroy(Tempstr);
@@ -356,12 +355,13 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
 {
     char *Command=NULL, *Tempstr=NULL, *Token=NULL, *Name=NULL;
     char *NetType=NULL, *InstallSource=NULL, *AudioBackend=NULL, *AudioConfig=NULL;
+    char *Warnings=NULL;
     const char *ptr="";
 
-
+    if (! KVMAvailable()) Warnings=CatStr(Warnings, "KVM not available, emulation may be slow");
     if (Action==ACT_CREATE)
     {
-				Command=XDialogNewForm(Command, "Setup New VM Image", "");
+        Command=XDialogNewForm(Command, "Setup New VM Image", Warnings);
         Command=XDialogNewFormEntry(Command, "Image Name");
         Command=XDialogNewFormEntry(Command, "Image Size");
         Command=XDialogFormatComboValues(Command, NULL, "", "install from iso,add existing disk image,import existing disk image", "Install Type", FALSE);
@@ -370,8 +370,8 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
     else
     {
         Name=CopyStr(Name, ParserGetValue(ImageConf, "name"));
-				Tempstr=MCopyStr(Tempstr, "VM Image: ", Name, NULL);
-				Command=XDialogNewForm(Command, Tempstr, "");
+        Tempstr=MCopyStr(Tempstr, "VM Image: ", Name, NULL);
+        Command=XDialogNewForm(Command, Tempstr, Warnings);
         Command=XDialogFormatComboValues(Command, ImageConf, "", "start vm,save config,start vm and save config,DELETE VM", "Action", FALSE);
     }
 
@@ -616,26 +616,26 @@ int XDialogSetup(const char *SetupInfo)
     }
 
     Tempstr=XDialogRun(Tempstr, Command, FALSE);
-		if (StrValid(Tempstr))
-		{
-		StrTruncChar(Tempstr, '|');
-		printf("XDR: %s\n", Tempstr);
     if (StrValid(Tempstr))
     {
-        RetVal=TRUE;
-        if (strcmp(Tempstr, "Setup New Image")==0)
+        StrTruncChar(Tempstr, '|');
+        printf("XDR: %s\n", Tempstr);
+        if (StrValid(Tempstr))
         {
-            XDialogConfigureImage();
-        }
-        else
-        {
-            ptr=GetToken(Tempstr, " ", &Name, GETTOKEN_QUOTES);
-            ImageInfo=ImageGetRunningInfo(Name);
-            if (ImageInfo) while (XDialogManageImage(Name, ImageInfo));
-            else XDialogStartImage(Name);
+            RetVal=TRUE;
+            if (strcmp(Tempstr, "Setup New Image")==0)
+            {
+                XDialogConfigureImage();
+            }
+            else
+            {
+                ptr=GetToken(Tempstr, " ", &Name, GETTOKEN_QUOTES);
+                ImageInfo=ImageGetRunningInfo(Name);
+                if (ImageInfo) while (XDialogManageImage(Name, ImageInfo));
+                else XDialogStartImage(Name);
+            }
         }
     }
-		}
 
     globfree(&Glob);
 

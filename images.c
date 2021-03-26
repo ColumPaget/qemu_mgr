@@ -5,6 +5,7 @@
 #include "os-commands.h"
 #include "image-config.h"
 #include "vnc.h"
+#include "kvm.h"
 
 
 void OutputImageInfo(TImageInfo *Info)
@@ -337,14 +338,6 @@ static char *ImageSetupUser(char *RetStr, ListNode *Config)
 }
 
 
-static char *ImageSetupKVM(char *RetStr)
-{
-if (access("/dev/kvm", F_OK) != 0) printf("No /dev/kvm. Cannot activate KVM\n");
-else if (access("/dev/kvm", W_OK) != 0) printf("Permission denied to /dev/kvm. Cannot activate KVM\n");
-else RetStr=CatStr(RetStr, " -enable-kvm -cpu host ");
-
-return(RetStr);
-}
 
 
 void ImageCreate(const char *ImageName, const char *Config)
@@ -366,8 +359,8 @@ void ImageCreate(const char *ImageName, const char *Config)
         system(Tempstr);
 
         Tempstr=MCopyStr(Tempstr, "qemu-system-x86_64", " ", " -m 2047 ", NULL);
-				Tempstr=ImageSetupKVM(Tempstr);
-				Tempstr=MCatStr(Tempstr, " ", ParserGetValue(ConfTree, "image"), " -cdrom '", p_Src, "'", NULL);
+        if (KVMAvailable()) Tempstr=CatStr(Tempstr, " -enable-kvm -cpu host ");
+        Tempstr=MCatStr(Tempstr, " ", ParserGetValue(ConfTree, "image"), " -cdrom '", p_Src, "'", NULL);
         Spawn(Tempstr, "");
     }
     else
@@ -401,7 +394,7 @@ int ImageStart(const char *ImageName, const char *Options)
     Path=CopyStr(Path, ParserGetValue(Config, "image"));
 
     Command=MCopyStr(Command, "qemu-system-x86_64", " -name ", ImageName,  NULL);
-		Command=ImageSetupKVM(Command);
+    if (KVMAvailable()) Command=CatStr(Command, " -enable-kvm -cpu host ");
 
     ptr=ParserGetValue(Config, "smp");
     //if (StrValid(ptr)) Command=MCatStr(Command, " -smp sockets=1,dies=1,cores=", ptr, NULL);
