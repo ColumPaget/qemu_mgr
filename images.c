@@ -57,17 +57,10 @@ TImageInfo *ImageGetRunningInfo(const char *ImageName)
         Qmp=QMPCommand(S, "{\"execute\": \"query-cpus\"}\n");
         ParserItemsDestroy(Qmp);
 
-        Qmp=QMPCommand(S, "{\"execute\": \"query-block\"}\n");
-        Result=ParserOpenItem(Qmp, "return");
-        Curr=ListGetNext(Result);
-        while (Curr)
-        {
-            Info->blockdevs=MCatStr(Info->blockdevs, ParserGetValue(Curr, "device"),":", ParserGetValue(Curr, "inserted/image/filename"), NULL);
-            Info->blockdevs=CatStr(Info->blockdevs, " ");
-            Curr=ListGetNext(Curr);
-        }
-        ParserItemsDestroy(Qmp);
-        STREAMClose(S);
+			  STREAMClose(S);
+
+			//must do this after STREAMClose when QMP connection is freed up
+		  Info->blockdevs=QMPListBlockDevs(Info->blockdevs, ImageName, BD_INCLUDE_MEDIA);
     }
 
     Destroy(Tempstr);
@@ -578,7 +571,7 @@ int ImageMediaRemove(const char *ImageName, const char *Options)
         ptr=GetNameValuePair(ptr, "\\S", "=", &Name, &Value);
     }
 
-    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"eject\", \"arguments\": { \"id\": \"", Dev, "\"} }\n", NULL);
+    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"eject\", \"arguments\": { \"device\": \"", Dev, "\", \"force\": true} }\n", NULL);
     Qmp=QMPTransact(ImageName, Tempstr);
     ParserItemsDestroy(Qmp);
 
