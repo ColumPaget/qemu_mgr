@@ -131,6 +131,7 @@ STREAM *S;
 ListNode *Qmp, *Result, *Curr;
 const char *ptr;
 
+RetStr=CopyStr(RetStr, "");
 S=QMPOpen(ImageName);
 if (S)
 {

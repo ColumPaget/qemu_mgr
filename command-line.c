@@ -409,6 +409,7 @@ printf("  tar -zcf /dev/fd0\n\n");
 printf("qemu_mgr recognizes the following prefixes to identify the kind of file to be made and mounted\n\n");
 printf("   iso:  iso9660 filesystem (requires mkisofs utility)\n");
 printf("   zip:  pkzip archive file (requires zip utility)\n");
+printf("   tar:  tar archive file (requires tar  utility)\n");
 printf("   tgz:  gzipped tar archive file (requires tar and gzip utilities)\n");
 printf("   txz:  xzipped tar archive file (requires tar and xz utilities)\n");
 printf("   7za:  7zip archive file (requires 7za utility)\n\n");
@@ -418,7 +419,7 @@ printf("With no prefix the path is treated as a file to be mounted (which will f
 
 static void CommandLinePrintVNCHelp()
 {
-    printf("The display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
+printf("The display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
 }
 
 

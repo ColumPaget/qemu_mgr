@@ -51,6 +51,16 @@ static void MountPath(const char *ImageName, const char *MountDevice, const char
             system(Tempstr);
         }
     }
+    else if (strcmp(Format, "tar")==0)
+    {
+        ptr=OSCommandFindPath("tar");
+        if (StrValid(ptr))
+        {
+            FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Quoted), ".tar", NULL);
+            Tempstr=MCopyStr(Tempstr, ptr, " -cf '", FSPath, "' ", Quoted, NULL);
+            system(Tempstr);
+        }
+    }
     else if (strcmp(Format, "tgz")==0)
     {
         ptr=OSCommandFindPath("tar");
@@ -58,6 +68,16 @@ static void MountPath(const char *ImageName, const char *MountDevice, const char
         {
             FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Quoted), ".tgz", NULL);
             Tempstr=MCopyStr(Tempstr, ptr, " -zcf '", FSPath, "' ", Quoted, NULL);
+            system(Tempstr);
+        }
+    }
+    else if (strcmp(Format, "txz")==0)
+    {
+        ptr=OSCommandFindPath("tar");
+        if (StrValid(ptr))
+        {
+            FSPath=MCopyStr(FSPath, "/tmp/", GetBasename(Quoted), ".txz", NULL);
+            Tempstr=MCopyStr(Tempstr, ptr, " -Jcf '", FSPath, "' ", Quoted, NULL);
             system(Tempstr);
         }
     }
