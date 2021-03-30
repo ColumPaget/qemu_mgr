@@ -398,28 +398,28 @@ static void CommandLinePrintHelp()
 
 static void CommandLinePrintMediaHelp()
 {
-printf("Files can be packed into and iso filesystem and mounted as a cdrom, or as a tar or zip file which can then be 'mounted' into any block device in unix\n");
-printf("ISO filesystem support requires the mkisofs utility to be available. This method has been seen to work with windows guests. You can either pick the appropriate option from the interactive menus ones a VM is running, or else use the media-add command:\n\n");
-printf("  qemu_mgr media-add MyWindowsVM ide-cd0 iso:/home/music\n\n");
-printf("This will build a .iso file with the contents of /home/music and then 'insert' it into the qemu cd-rom block device 'ide-cd0' in the vm 'MyWindowsVM'\n\n");
-printf("For unix hosts a trick can be used where any kind of file can be mounted in any qemu block device, and extracted in the guest VM. For example\n\n");
-printf("  qemu_mgr media-add MyLinuxVM fd0 tgz:/home/music\n\n");
-printf("Will use the tar utility to create a gzipped tar file and 'insert' it into floppy drive fd0. This can then be extracted in the guest with\n\n");
-printf("  tar -zcf /dev/fd0\n\n");
-printf("qemu_mgr recognizes the following prefixes to identify the kind of file to be made and mounted\n\n");
-printf("   iso:  iso9660 filesystem (requires mkisofs utility)\n");
-printf("   zip:  pkzip archive file (requires zip utility)\n");
-printf("   tar:  tar archive file (requires tar  utility)\n");
-printf("   tgz:  gzipped tar archive file (requires tar and gzip utilities)\n");
-printf("   txz:  xzipped tar archive file (requires tar and xz utilities)\n");
-printf("   7za:  7zip archive file (requires 7za utility)\n\n");
-printf("With no prefix the path is treated as a file to be mounted (which will fail if it's a directory). This allows mounting any type of file into a block device in the VM.\n");
+    printf("Files can be packed into and iso filesystem and mounted as a cdrom, or as a tar or zip file which can then be 'mounted' into any block device in unix\n");
+    printf("ISO filesystem support requires the mkisofs utility to be available. This method has been seen to work with windows guests. You can either pick the appropriate option from the interactive menus ones a VM is running, or else use the media-add command:\n\n");
+    printf("  qemu_mgr media-add MyWindowsVM ide-cd0 iso:/home/music\n\n");
+    printf("This will build a .iso file with the contents of /home/music and then 'insert' it into the qemu cd-rom block device 'ide-cd0' in the vm 'MyWindowsVM'\n\n");
+    printf("For unix hosts a trick can be used where any kind of file can be mounted in any qemu block device, and extracted in the guest VM. For example\n\n");
+    printf("  qemu_mgr media-add MyLinuxVM fd0 tgz:/home/music\n\n");
+    printf("Will use the tar utility to create a gzipped tar file and 'insert' it into floppy drive fd0. This can then be extracted in the guest with\n\n");
+    printf("  tar -zcf /dev/fd0\n\n");
+    printf("qemu_mgr recognizes the following prefixes to identify the kind of file to be made and mounted\n\n");
+    printf("   iso:  iso9660 filesystem (requires mkisofs utility)\n");
+    printf("   zip:  pkzip archive file (requires zip utility)\n");
+    printf("   tar:  tar archive file (requires tar  utility)\n");
+    printf("   tgz:  gzipped tar archive file (requires tar and gzip utilities)\n");
+    printf("   txz:  xzipped tar archive file (requires tar and xz utilities)\n");
+    printf("   7za:  7zip archive file (requires 7za utility)\n\n");
+    printf("With no prefix the path is treated as a file to be mounted (which will fail if it's a directory). This allows mounting any type of file into a block device in the VM.\n");
 
 }
 
 static void CommandLinePrintVNCHelp()
 {
-printf("The display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
+    printf("The display type must be specified as '-display vnc:<host>:<display>' where 'host' is the host connections are allowed to come *from* (often '127.0.0.1' or '0.0.0.0' for 'all hosts'). The 'display' argument is the display number (equates to a port number of 5900 + display number). e.g. -display vnc:127.0.0.1:4 to run a VNC service on port 5904\n");
 }
 
 

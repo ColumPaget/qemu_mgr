@@ -6,20 +6,20 @@
 
 int MountTypeIsArchive(const char *Mount)
 {
-char *Token=NULL;
-int RetVal=FALSE;
+    char *Token=NULL;
+    int RetVal=FALSE;
 
-GetToken(Mount, ":", &Token, 0);
-if (strcasecmp(Token, "file")==0) RetVal=TRUE;
-if (strcasecmp(Token, "iso")==0) RetVal=TRUE;
-if (strcasecmp(Token, "zip")==0) RetVal=TRUE;
-if (strcasecmp(Token, "7za")==0) RetVal=TRUE;
-if (strcasecmp(Token, "tar")==0) RetVal=TRUE;
-if (strcasecmp(Token, "tgz")==0) RetVal=TRUE;
-if (strcasecmp(Token, "txz")==0) RetVal=TRUE;
+    GetToken(Mount, ":", &Token, 0);
+    if (strcasecmp(Token, "file")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "iso")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "zip")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "7za")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "tar")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "tgz")==0) RetVal=TRUE;
+    if (strcasecmp(Token, "txz")==0) RetVal=TRUE;
 
-Destroy(Token);
-return(RetVal);
+    Destroy(Token);
+    return(RetVal);
 }
 
 
@@ -27,18 +27,18 @@ return(RetVal);
 static void MountPath(const char *ImageName, const char *MountDevice, const char *Path)
 {
     char *Tempstr=NULL, *Quoted=NULL, *FSPath=NULL;
-		char *Format=NULL;
+    char *Format=NULL;
     const char *ptr;
 
 
-		Format=CopyStr(Format, "");
+    Format=CopyStr(Format, "");
     Quoted=QuoteCharsInStr(Quoted, Path, "\"' ;&");
-		ptr=strchr(Path, ':');
-		if (ptr) 
-		{
-			Format=CopyStrLen(Format, Path, ptr-Path);
-			Quoted=QuoteCharsInStr(Quoted, ptr+1, "\"' ;&");
-		}
+    ptr=strchr(Path, ':');
+    if (ptr)
+    {
+        Format=CopyStrLen(Format, Path, ptr-Path);
+        Quoted=QuoteCharsInStr(Quoted, ptr+1, "\"' ;&");
+    }
     else Quoted=QuoteCharsInStr(Quoted, Path, "\"' ;&");
 
     if (strcmp(Format, "iso")==0)
@@ -101,7 +101,7 @@ static void MountPath(const char *ImageName, const char *MountDevice, const char
             system(Tempstr);
         }
     }
-		else FSPath=CopyStr(FSPath, Quoted);
+    else FSPath=CopyStr(FSPath, Quoted);
 
 
     if (StrValid(FSPath))
@@ -145,34 +145,34 @@ void MountItem(const char *ImageName, const char *Config)
 
 char *MountFindSourceTypes(char *RetStr)
 {
-glob_t Glob;
-const char *ptr;
-int i;
+    glob_t Glob;
+    const char *ptr;
+    int i;
 
-RetStr=MCopyStr(RetStr, "file - filesystem image or other file,", NULL);
+    RetStr=MCopyStr(RetStr, "file - filesystem image or other file,", NULL);
 
-glob("/dev/sr[0-9]", 0, 0, &Glob);
-for (i=0; i < Glob.gl_pathc; i++)
-{
-	RetStr=MCatStr(RetStr, Glob.gl_pathv[i], " - optical drive,", NULL);
-}
-globfree(&Glob);
+    glob("/dev/sr[0-9]", 0, 0, &Glob);
+    for (i=0; i < Glob.gl_pathc; i++)
+    {
+        RetStr=MCatStr(RetStr, Glob.gl_pathv[i], " - optical drive,", NULL);
+    }
+    globfree(&Glob);
 
-ptr=OSCommandFindPath("mkisofs");
-if (StrValid(ptr)) RetStr=CatStr(RetStr, "mkisofs - create iso9660 filesystem image,");
-ptr=OSCommandFindPath("zip");
-if (StrValid(ptr)) RetStr=CatStr(RetStr, "zip - create pkzip archive,");
-ptr=OSCommandFindPath("7za");
-if (StrValid(ptr)) RetStr=CatStr(RetStr, "7za - create 7z archive,");
-ptr=OSCommandFindPath("tar");
-if (StrValid(ptr))
-{
-RetStr=CatStr(RetStr, "tar - create uncompressed tar archive,");
-ptr=OSCommandFindPath("gzip");
-if (StrValid(ptr)) RetStr=CatStr(RetStr, "tgz - create gzipped tar archive,");
-ptr=OSCommandFindPath("xz");
-if (StrValid(ptr)) RetStr=CatStr(RetStr, "txz - create xzipped tar archive,");
-}
+    ptr=OSCommandFindPath("mkisofs");
+    if (StrValid(ptr)) RetStr=CatStr(RetStr, "mkisofs - create iso9660 filesystem image,");
+    ptr=OSCommandFindPath("zip");
+    if (StrValid(ptr)) RetStr=CatStr(RetStr, "zip - create pkzip archive,");
+    ptr=OSCommandFindPath("7za");
+    if (StrValid(ptr)) RetStr=CatStr(RetStr, "7za - create 7z archive,");
+    ptr=OSCommandFindPath("tar");
+    if (StrValid(ptr))
+    {
+        RetStr=CatStr(RetStr, "tar - create uncompressed tar archive,");
+        ptr=OSCommandFindPath("gzip");
+        if (StrValid(ptr)) RetStr=CatStr(RetStr, "tgz - create gzipped tar archive,");
+        ptr=OSCommandFindPath("xz");
+        if (StrValid(ptr)) RetStr=CatStr(RetStr, "txz - create xzipped tar archive,");
+    }
 
-return (RetStr);
+    return (RetStr);
 }

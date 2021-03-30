@@ -77,15 +77,15 @@ char *XDialogNewFormEntry(char *RetStr, const char *Title)
 
 char *XDialogFileSelection(char *RetStr, const char *Title, int Flags)
 {
-char *Command=NULL;
+    char *Command=NULL;
 
     Command=MCopyStr(Command, " --file-selection --title '", Title, "' ", NULL);
-		if (Flags & FILESELECT_DIRECTORY) Command=CatStr(Command, "--multiple ");
+    if (Flags & FILESELECT_DIRECTORY) Command=CatStr(Command, "--multiple ");
     RetStr=XDialogRun(RetStr, Command, FALSE);
 
-Destroy(Command);
+    Destroy(Command);
 
-return(RetStr);
+    return(RetStr);
 }
 
 
@@ -97,28 +97,28 @@ static char *XDialogFormatComboValues(char *RetStr, ListNode *ImageConf, const c
 
 
     if (ImageConf) p_Current=ParserGetValue(ImageConf, Field);
-        ptr=GetToken(Options, ",", &Token, 0);
+    ptr=GetToken(Options, ",", &Token, 0);
 
-        while (ptr)
+    while (ptr)
+    {
+        if (StrValid(Token))
         {
-    			if (StrValid(Token))
-					{
             Compare=CopyStr(Compare, Token);
             if (CropCompare) StrTruncChar(Compare, ' ');
 
-            if ( (! StrValid(p_Current)) || (strcmp(p_Current, Compare) != 0) ) 
-						{
-							if (StrValid(UnSelected)) UnSelected=MCatStr(UnSelected, ",", Token, NULL);
-							else UnSelected=CatStr(UnSelected, Token);
-						}
+            if ( (! StrValid(p_Current)) || (strcmp(p_Current, Compare) != 0) )
+            {
+                if (StrValid(UnSelected)) UnSelected=MCatStr(UnSelected, ",", Token, NULL);
+                else UnSelected=CatStr(UnSelected, Token);
+            }
             else Selected=CopyStr(Selected, Token);
-					}
-          ptr=GetToken(ptr, ",", &Token, 0);
         }
+        ptr=GetToken(ptr, ",", &Token, 0);
+    }
 
-        if (StrValid(Selected)) ComboValues=MCopyStr(ComboValues, Selected, ",", UnSelected, NULL);
-        else if (StrValid(p_Current)) ComboValues=MCopyStr(ComboValues, p_Current, ",", UnSelected, NULL);
-				else ComboValues=CopyStr(ComboValues, UnSelected);
+    if (StrValid(Selected)) ComboValues=MCopyStr(ComboValues, Selected, ",", UnSelected, NULL);
+    else if (StrValid(p_Current)) ComboValues=MCopyStr(ComboValues, p_Current, ",", UnSelected, NULL);
+    else ComboValues=CopyStr(ComboValues, UnSelected);
 
 
     if (strcasecmp(Config->DialogCmd, "yad")==0)
@@ -179,6 +179,8 @@ char *XDialogMenu(char *RetStr, const char *Title, const char *MenuHeader, const
     return(RetStr);
 }
 
+
+
 char *XDialogQuery(char *RetStr, const char *Title, const char *Text)
 {
     char *Command=NULL;
@@ -213,7 +215,7 @@ static char *XDialogSetupSource(char *Setup, const char *InstallType, const char
         ConfigField=CopyStr(ConfigField, "src-img");
     }
 
-		Tempstr=XDialogFileSelection(Tempstr, Title, 0);
+    Tempstr=XDialogFileSelection(Tempstr, Title, 0);
 
     Setup=MCatStr(Setup, " ", ConfigField, "='", Tempstr,"' ", NULL);
 
@@ -413,7 +415,6 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
     Command=XDialogFormatComboValues(Command, ImageConf, "passthrough", "no,yes", "Passthrough Devices",FALSE);
 
 
-    printf("RUN: %s\n", Command);
     Tempstr=XDialogRun(Tempstr, Command, FALSE);
     ptr=Tempstr;
 
@@ -431,6 +432,7 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
     else ptr=GetToken(ptr, "|", RetInstallType, 0);
 
     ptr=GetToken(ptr, "|", &Token, 0);
+    if (strcmp(Token, "other")==0) Token=XDialogQuery(Token, "VMSetup: Enter Number of CPUs/SMP Threads", "Enter number of emulated CPUs");
     RetStr=MCatStr(RetStr, " smp=", Token, " ", NULL);
 
     ptr=GetToken(ptr, "|", &Token, 0);
@@ -438,6 +440,7 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
     RetStr=MCatStr(RetStr, " machine=", Token, NULL);
 
     ptr=GetToken(ptr, "|", &Token, 0);
+    if (strcmp(Token, "other")==0) Token=XDialogQuery(Token, "VMSetup: Enter Memory Size", "Enter memory size in megabytes");
     RetStr=MCatStr(RetStr, " mem=", Token, " ", NULL);
 
     ptr=GetToken(ptr, "|", &Token, 0);
@@ -481,46 +484,46 @@ char *XDialogQueryVMSetup(char *RetStr, int Action, ListNode *ImageConf, char **
 
 ListNode *XDialogQueryVMTemplate()
 {
-ListNode *ImageConf;
-char *Command=NULL, *Tempstr=NULL, *Template=NULL;
+    ListNode *ImageConf;
+    char *Command=NULL, *Tempstr=NULL, *Template=NULL;
 
-ImageConf=ListCreate();
-Command=XDialogNewForm(Command, "Select Template", "Select Image Template to Load Settings From");
-Tempstr=ConfigTemplatesGetList(Tempstr);
-Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Template", FALSE);
+    ImageConf=ListCreate();
+    Command=XDialogNewForm(Command, "Select Template", "Select Image Template to Load Settings From");
+    Tempstr=ConfigTemplatesGetList(Tempstr);
+    Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Template", FALSE);
 
-Tempstr=XDialogRun(Tempstr, Command, FALSE);
-if (StrValid(Tempstr))
-{
-	Template=ConfigTemplateLoad(Template, Tempstr);
-	ImageConfigUpdate(ImageConf, Template);
+    Tempstr=XDialogRun(Tempstr, Command, FALSE);
+    if (StrValid(Tempstr))
+    {
+        Template=ConfigTemplateLoad(Template, Tempstr);
+        ImageConfigUpdate(ImageConf, Template);
+    }
+
+    Destroy(Command);
+    Destroy(Tempstr);
+    Destroy(Template);
+
+    return(ImageConf);
 }
 
-Destroy(Command);
-Destroy(Tempstr);
-Destroy(Template);
 
-return(ImageConf);
-}
-
- 
 void XDialogConfigureImage()
 {
     char *Setup=NULL, *Name=NULL, *InstallType=NULL;
-		ListNode *ImageConf;
+    ListNode *ImageConf;
 
-		ImageConf=XDialogQueryVMTemplate();
+    ImageConf=XDialogQueryVMTemplate();
     Setup=XDialogQueryVMSetup(Setup, ACT_CREATE, ImageConf, &Name, &InstallType);
 
-		if (StrValid(InstallType))
-		{
-    if (strcasecmp(InstallType, "add existing disk image")==0)
+    if (StrValid(InstallType))
     {
-        ActionPerform(ACT_ADD, Name, Setup);
-        ActionPerform(ACT_START, Name, Setup);
+        if (strcasecmp(InstallType, "add existing disk image")==0)
+        {
+            ActionPerform(ACT_ADD, Name, Setup);
+            ActionPerform(ACT_START, Name, Setup);
+        }
+        else ActionPerform(ACT_CREATE, Name, Setup);
     }
-    else ActionPerform(ACT_CREATE, Name, Setup);
-		}
 
     Destroy(InstallType);
     Destroy(Setup);
@@ -561,50 +564,50 @@ static void XDialogSendText(const char *ImageName)
 
 static void XDialogMountDriveMedia(const char *ImageName)
 {
-char *Command=NULL, *Tempstr=NULL, *Token=NULL;
-const char *ptr;
+    char *Command=NULL, *Tempstr=NULL, *Token=NULL;
+    const char *ptr;
 
-Command=XDialogNewForm(Command, "Mount Drive Media", "Mount files or device into a drive in the guest VM.\nSelect a block device or select an archive type to create and mount.\nYou will then be asked to select files/directories to include.");
+    Command=XDialogNewForm(Command, "Mount Drive Media", "Mount files or device into a drive in the guest VM.\nSelect a block device or select an archive type to create and mount.\nYou will then be asked to select files/directories to include.");
 
 //char *XDialogNewFormEntry(char *RetStr, const char *Title)
-Tempstr=QMPListBlockDevs(Tempstr, ImageName, 0);
-Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Guest VM Device",  FALSE);
-Tempstr=MountFindSourceTypes(Tempstr);
-Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Source Type",  FALSE);
+    Tempstr=QMPListBlockDevs(Tempstr, ImageName, 0);
+    Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Guest VM Device",  FALSE);
+    Tempstr=MountFindSourceTypes(Tempstr);
+    Command=XDialogFormatComboValues(Command, NULL, "", Tempstr, "Source Type",  FALSE);
 
-Tempstr=XDialogRun(Tempstr, Command, FALSE);
+    Tempstr=XDialogRun(Tempstr, Command, FALSE);
 
-if (StrValid(Tempstr)) 
-{
-	ptr=GetToken(Tempstr, "|", &Token, 0);
-	StrTruncChar(Token, ' ');
-	Command=MCopyStr(Command, "dev=", Token, " ");
-	ptr=GetToken(ptr, "|", &Token, 0);
-	StrTruncChar(Token, ' ');
+    if (StrValid(Tempstr))
+    {
+        ptr=GetToken(Tempstr, "|", &Token, 0);
+        StrTruncChar(Token, ' ');
+        Command=MCopyStr(Command, "dev=", Token, " ");
+        ptr=GetToken(ptr, "|", &Token, 0);
+        StrTruncChar(Token, ' ');
 
-	if (MountTypeIsArchive(Token))
-	{
-		Tempstr=XDialogFileSelection(Tempstr, "Select Files", FILESELECT_DIRECTORY);
-		Token=MCatStr(Token, ":", Tempstr, NULL);
-printf("SELECTED: %s\n", Tempstr);
-	}
+        if (MountTypeIsArchive(Token))
+        {
+            Tempstr=XDialogFileSelection(Tempstr, "Select Files", FILESELECT_DIRECTORY);
+            Token=MCatStr(Token, ":", Tempstr, NULL);
+            printf("SELECTED: %s\n", Tempstr);
+        }
 
-	Command=MCatStr(Command, "media='", Token, "' ");
-	
-	MountItem(ImageName, Command);
-}
+        Command=MCatStr(Command, "media='", Token, "' ");
+
+        MountItem(ImageName, Command);
+    }
 
 
-Destroy(Command);
-Destroy(Tempstr);
-Destroy(Token);
+    Destroy(Command);
+    Destroy(Tempstr);
+    Destroy(Token);
 }
 
 
 static int XDialogManageImage(const char *ImageName, TImageInfo *ImageInfo)
 {
     char *Command=NULL, *Tempstr=NULL, *Token=NULL;
-		const char *ptr, *tptr;
+    const char *ptr, *tptr;
     int RetVal=FALSE;
 
     Command=MCopyStr(Command, " --list --title 'Running VM: ", ImageName, "' --ok-label 'Select' --cancel-label 'Back' --column 'Select Operation' ", NULL);
@@ -621,13 +624,13 @@ static int XDialogManageImage(const char *ImageName, TImageInfo *ImageInfo)
     Command=CatStr(Command, "'Send Text' ");
     Command=CatStr(Command, "'Mount Drive Media' ");
 
-		Tempstr=QMPListBlockDevs(Tempstr, ImageName, BD_MOUNTED | BD_INCLUDE_MEDIA | BD_REMOVABLE);
-		ptr=GetToken(Tempstr, ",", &Token, 0);
-		while (ptr)
-		{
-		Command=MCatStr(Command, "'Eject ", Token, "' ", NULL);
-		ptr=GetToken(ptr, ",", &Token, 0);
-		}
+    Tempstr=QMPListBlockDevs(Tempstr, ImageName, BD_MOUNTED | BD_INCLUDE_MEDIA | BD_REMOVABLE);
+    ptr=GetToken(Tempstr, ",", &Token, 0);
+    while (ptr)
+    {
+        Command=MCatStr(Command, "'Eject ", Token, "' ", NULL);
+        ptr=GetToken(ptr, ",", &Token, 0);
+    }
 
     Tempstr=XDialogRun(Tempstr, Command, FALSE);
 
@@ -644,12 +647,12 @@ static int XDialogManageImage(const char *ImageName, TImageInfo *ImageInfo)
         else if (strcmp(Tempstr, "Screenshot")==0) ImageScreenshot(ImageName, "");
         else if (strcmp(Tempstr, "Send Text")==0) XDialogSendText(ImageName);
         else if (strcmp(Tempstr, "Mount Drive Media")==0) XDialogMountDriveMedia(ImageName);
-        else if (strncmp(Tempstr, "Eject ", 6)==0) 
-				{
-					GetToken(Tempstr+6, ":", &Token, 0);
-					Tempstr=MCopyStr(Tempstr, "dev=", Token, NULL);
-					ImageMediaRemove(ImageName, Tempstr);
-				}
+        else if (strncmp(Tempstr, "Eject ", 6)==0)
+        {
+            GetToken(Tempstr+6, ":", &Token, 0);
+            Tempstr=MCopyStr(Tempstr, "dev=", Token, NULL);
+            ImageMediaRemove(ImageName, Tempstr);
+        }
     }
 
 

@@ -57,10 +57,10 @@ TImageInfo *ImageGetRunningInfo(const char *ImageName)
         Qmp=QMPCommand(S, "{\"execute\": \"query-cpus\"}\n");
         ParserItemsDestroy(Qmp);
 
-			  STREAMClose(S);
+        STREAMClose(S);
 
-			//must do this after STREAMClose when QMP connection is freed up
-		  Info->blockdevs=QMPListBlockDevs(Info->blockdevs, ImageName, BD_INCLUDE_MEDIA);
+        //must do this after STREAMClose when QMP connection is freed up
+        Info->blockdevs=QMPListBlockDevs(Info->blockdevs, ImageName, BD_INCLUDE_MEDIA);
     }
 
     Destroy(Tempstr);

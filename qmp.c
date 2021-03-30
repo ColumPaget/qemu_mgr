@@ -51,7 +51,7 @@ STREAM *QMPOpen(const char *ImageName)
     S=STREAMOpen(Tempstr, "");
     if (S)
     {
-				STREAMSetTimeout(S, 50);
+        STREAMSetTimeout(S, 50);
         Tempstr=STREAMReadLine(Tempstr, S);
         //fprintf(stderr,"QMP: %s\n", Tempstr);
         STREAMWriteLine("{\"execute\": \"qmp_capabilities\"}\n", S);
@@ -107,51 +107,51 @@ int QMPIsError(ListNode *Qmp)
 
 static int QMPBlockDevRequested(ListNode *Qmp, int Flags)
 {
-const char *ptr;
+    const char *ptr;
 
-if (Flags & BD_REMOVABLE)
-{
-	ptr=ParserGetValue(Qmp, "removable");
-	if (ptr && (strcmp(ptr, "true") !=0)) return(FALSE);
-}
+    if (Flags & BD_REMOVABLE)
+    {
+        ptr=ParserGetValue(Qmp, "removable");
+        if (ptr && (strcmp(ptr, "true") !=0)) return(FALSE);
+    }
 
-if (Flags & BD_MOUNTED)
-{
- 	ptr=ParserGetValue(Qmp, "inserted/image/filename");
-	if (! StrValid(ptr)) return(FALSE);
-}
+    if (Flags & BD_MOUNTED)
+    {
+        ptr=ParserGetValue(Qmp, "inserted/image/filename");
+        if (! StrValid(ptr)) return(FALSE);
+    }
 
-return(TRUE);
+    return(TRUE);
 }
 
 
 char *QMPListBlockDevs(char *RetStr, const char *ImageName, int Flags)
 {
-STREAM *S;
-ListNode *Qmp, *Result, *Curr;
-const char *ptr;
+    STREAM *S;
+    ListNode *Qmp, *Result, *Curr;
+    const char *ptr;
 
-RetStr=CopyStr(RetStr, "");
-S=QMPOpen(ImageName);
-if (S)
-{
-Qmp=QMPCommand(S, "{\"execute\": \"query-block\"}\n");
-Result=ParserOpenItem(Qmp, "return");
-Curr=ListGetNext(Result);
-while (Curr)
-{
- if (QMPBlockDevRequested(Curr, Flags))
- {
- RetStr=CatStr(RetStr, ParserGetValue(Curr, "device"));
- if (Flags & BD_INCLUDE_MEDIA) RetStr=MCatStr(RetStr, ":", ParserGetValue(Curr, "inserted/image/filename"), NULL);
- RetStr=CatStr(RetStr, ",");
- }
- Curr=ListGetNext(Curr);
-}
-STREAMClose(S);
-}
+    RetStr=CopyStr(RetStr, "");
+    S=QMPOpen(ImageName);
+    if (S)
+    {
+        Qmp=QMPCommand(S, "{\"execute\": \"query-block\"}\n");
+        Result=ParserOpenItem(Qmp, "return");
+        Curr=ListGetNext(Result);
+        while (Curr)
+        {
+            if (QMPBlockDevRequested(Curr, Flags))
+            {
+                RetStr=CatStr(RetStr, ParserGetValue(Curr, "device"));
+                if (Flags & BD_INCLUDE_MEDIA) RetStr=MCatStr(RetStr, ":", ParserGetValue(Curr, "inserted/image/filename"), NULL);
+                RetStr=CatStr(RetStr, ",");
+            }
+            Curr=ListGetNext(Curr);
+        }
+        STREAMClose(S);
+    }
 
-return(RetStr);
+    return(RetStr);
 }
 
 

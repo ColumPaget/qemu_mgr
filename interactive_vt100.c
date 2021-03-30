@@ -324,60 +324,60 @@ void QEMUMGR_TerminalDialogDeleteImage(const char *Name)
 
 static void QEMUMGR_TerminalMountDriveMediaBanner(const char *ImageName)
 {
-char *Tempstr=NULL;
+    char *Tempstr=NULL;
 
-Tempstr=MCopyStr(Tempstr, "~B~wQEMU_MGR: Mount Drive Media: ~y", ImageName, "~>~0\n\n", NULL);
-QEMUMGR_TerminalSetup(Tempstr, "~B~w~>~0");
+    Tempstr=MCopyStr(Tempstr, "~B~wQEMU_MGR: Mount Drive Media: ~y", ImageName, "~>~0\n\n", NULL);
+    QEMUMGR_TerminalSetup(Tempstr, "~B~w~>~0");
 
-Tempstr=CopyStr(Tempstr, "\nMount files or device into a drive in the guest VM.\nSelect a block device or select an archive type to create and mount.\nYou will then be asked to select files/directories to include.\n\n");
-TerminalPutStr(Tempstr, Term);
+    Tempstr=CopyStr(Tempstr, "\nMount files or device into a drive in the guest VM.\nSelect a block device or select an archive type to create and mount.\nYou will then be asked to select files/directories to include.\n\n");
+    TerminalPutStr(Tempstr, Term);
 
-Destroy(Tempstr);
+    Destroy(Tempstr);
 }
 
 
 static void QEMUMGR_TerminalMountDriveMedia(const char *ImageName)
 {
-char *Command=NULL, *Tempstr=NULL, *Value=NULL;
-const char *ptr;
+    char *Command=NULL, *Tempstr=NULL, *Value=NULL;
+    const char *ptr;
 
 
-QEMUMGR_TerminalMountDriveMediaBanner(ImageName);
-Tempstr=QMPListBlockDevs(Tempstr, ImageName, 0);
-strrep(Tempstr, ',', '|');
+    QEMUMGR_TerminalMountDriveMediaBanner(ImageName);
+    Tempstr=QMPListBlockDevs(Tempstr, ImageName, 0);
+    strrep(Tempstr, ',', '|');
 
-TerminalCursorMove(Term, 2, 8);
-TerminalPutStr("Select target device in guest VM", Term);
-Value=TerminalMenuFromText(Value, Term, Tempstr, 1, 9, 40, 10);
-if (StrValid(Value)) 
-{
-	Command=MCopyStr(Command, "dev=", Value, NULL);
- 
-	QEMUMGR_TerminalMountDriveMediaBanner(ImageName);
-	Tempstr=MountFindSourceTypes(Tempstr);
-	strrep(Tempstr, ',', '|');
+    TerminalCursorMove(Term, 2, 8);
+    TerminalPutStr("Select target device in guest VM", Term);
+    Value=TerminalMenuFromText(Value, Term, Tempstr, 1, 9, 40, 10);
+    if (StrValid(Value))
+    {
+        Command=MCopyStr(Command, "dev=", Value, NULL);
 
-	TerminalCursorMove(Term, 2, 8);
-	TerminalPutStr("Select source type", Term);
-	Value=TerminalMenuFromText(Value, Term, Tempstr, 1, 9, 40, 10);
-	if (StrValid(Value)) 
-	{
-	StrTruncChar(Value, ' ');
-	Command=MCatStr(Command, " media=", Value, NULL);
-	if (MountTypeIsArchive(Value))
-	{
-		Tempstr=CopyStr(Tempstr, "");
-		Tempstr=TerminalReadPrompt(Tempstr, "Enter path for source files/directory: ", 0, Term);
-	 	Command=MCatStr(Command, ":", Tempstr, NULL);
-	}
-	MountItem(ImageName, Command);
-	}
-}
+        QEMUMGR_TerminalMountDriveMediaBanner(ImageName);
+        Tempstr=MountFindSourceTypes(Tempstr);
+        strrep(Tempstr, ',', '|');
+
+        TerminalCursorMove(Term, 2, 8);
+        TerminalPutStr("Select source type", Term);
+        Value=TerminalMenuFromText(Value, Term, Tempstr, 1, 9, 40, 10);
+        if (StrValid(Value))
+        {
+            StrTruncChar(Value, ' ');
+            Command=MCatStr(Command, " media=", Value, NULL);
+            if (MountTypeIsArchive(Value))
+            {
+                Tempstr=CopyStr(Tempstr, "");
+                Tempstr=TerminalReadPrompt(Tempstr, "Enter path for source files/directory: ", 0, Term);
+                Command=MCatStr(Command, ":", Tempstr, NULL);
+            }
+            MountItem(ImageName, Command);
+        }
+    }
 
 
-Destroy(Value);
-Destroy(Tempstr);
-Destroy(Command);
+    Destroy(Value);
+    Destroy(Tempstr);
+    Destroy(Command);
 }
 
 
@@ -385,7 +385,7 @@ void QEMUMGR_TerminalDialogManageImage(const char *Name, TImageInfo *ImageInfo)
 {
     char *Command=NULL, *Tempstr=NULL, *Token=NULL;
     ListNode *ImageConf, *MenuItems, *Choice;
-		const char *ptr;
+    const char *ptr;
 
     ImageConf=ImageConfigLoad(Name);
 
@@ -404,15 +404,15 @@ void QEMUMGR_TerminalDialogManageImage(const char *Name, TImageInfo *ImageInfo)
     ListAddNamedItem(MenuItems, "Screenshot", NULL);
     ListAddNamedItem(MenuItems, "Mount Drive Media", NULL);
 
-	
-		Tempstr=QMPListBlockDevs(Tempstr, Name, BD_MOUNTED | BD_INCLUDE_MEDIA | BD_REMOVABLE);
-		ptr=GetToken(Tempstr, ",", &Token, 0);
-		while (ptr)
-		{
-			Command=MCatStr(Command, "Eject ", Token, " ", NULL);
-    	ListAddNamedItem(MenuItems, Command, NULL);
-			ptr=GetToken(ptr, ",", &Token, 0);
-		}
+
+    Tempstr=QMPListBlockDevs(Tempstr, Name, BD_MOUNTED | BD_INCLUDE_MEDIA | BD_REMOVABLE);
+    ptr=GetToken(Tempstr, ",", &Token, 0);
+    while (ptr)
+    {
+        Command=MCatStr(Command, "Eject ", Token, " ", NULL);
+        ListAddNamedItem(MenuItems, Command, NULL);
+        ptr=GetToken(ptr, ",", &Token, 0);
+    }
 
 
     Choice=TerminalMenu(Term, MenuItems, 1, 2, 40, 10);
@@ -427,12 +427,12 @@ void QEMUMGR_TerminalDialogManageImage(const char *Name, TImageInfo *ImageInfo)
         else if (strcmp(Choice->Tag, "Wakeup")==0) ImageWakeup(Name, "");
         else if (strcmp(Choice->Tag, "Screenshot")==0) ImageScreenshot(Name, "");
         else if (strcmp(Choice->Tag, "Mount Drive Media")==0) QEMUMGR_TerminalMountDriveMedia(Name);
-        else if (strncmp(Choice->Tag, "Eject ", 6)==0) 
-				{
-					GetToken(Choice->Tag+6, ":", &Token, 0);
-					Tempstr=MCopyStr(Tempstr, "dev=", Token, NULL);
-					ImageMediaRemove(Name, Tempstr);
-				}
+        else if (strncmp(Choice->Tag, "Eject ", 6)==0)
+        {
+            GetToken(Choice->Tag+6, ":", &Token, 0);
+            Tempstr=MCopyStr(Tempstr, "dev=", Token, NULL);
+            ImageMediaRemove(Name, Tempstr);
+        }
     }
 
     ListDestroy(MenuItems, Destroy);
