@@ -705,7 +705,7 @@ int XDialogSetup(const char *SetupInfo)
     glob_t Glob;
     int RetVal=FALSE, i;
 
-    XDialogFindXDialogCommand("yad,qarma,zenity,xdialog");
+    XDialogFindXDialogCommand("qarma,zenity,xdialog");
 
     Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/*.qemu_mgr", NULL);
     glob(Tempstr, 0, 0, &Glob);

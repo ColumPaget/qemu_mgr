@@ -387,12 +387,12 @@ static void CommandLinePrintHelp()
     printf(" -machine <type>    machine type: one of 'pc', 'q35', 'isapc' or 'microvm'.\n");
     printf(" -mach    <type>    machine type: one of 'pc', 'q35', 'isapc' or 'microvm'.\n");
     printf(" -display <type>    display type: one of 'std', 'virtio', 'qxl', 'rage128p', 'rv100', 'vnc' or 'none'. See 'qemu_mgr --help-vnc' for more info on VNC.\n");
-    printf("	-prealloc <yes|no>    Preallocate memory to the vm (rather than have the vm grab memory as it needs it)\n");
-    printf("	-fullscreen <yes|no>  Fullscreen graphics\n");
-    printf("	-password <secret>    Password for use with VNC\n");
-    printf("	-pass     <secret>    Password for use with VNC\n");
-    printf("	-pw       <secret>    Password for use with VNC\n");
-    printf("	-delay   <seconds>    Connect delay for VNC viewers. This can be used to prevent connecting to early and getting disconnected while the VM starts up.\n");
+    printf(" -prealloc <yes|no>    Preallocate memory to the vm (rather than have the vm grab memory as it needs it)\n");
+    printf(" -fullscreen <yes|no>  Fullscreen graphics\n");
+    printf(" -password <secret>    Password for use with VNC\n");
+    printf(" -pass     <secret>    Password for use with VNC\n");
+    printf(" -pw       <secret>    Password for use with VNC\n");
+    printf(" -delay   <seconds>    Connect delay for VNC viewers. This can be used to prevent connecting to early and getting disconnected while the VM starts up.\n");
 }
 
 

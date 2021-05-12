@@ -406,7 +406,7 @@ int ImageStart(const char *ImageName, const char *Options)
     }
     else Command=MCatStr(Command, " '", Path, "' ", NULL);
 
-    Command=MCatStr(Command, " -device sdhci-pci -device sd-card,drive=mmc0 -drive id=mmc0,if=none ", NULL);
+    //Command=MCatStr(Command, " -device sdhci-pci -device sd-card,drive=mmc0 -drive id=mmc0,if=none ", NULL);
 
 
     Command=ImageSetupDisplay(Command, Config);
@@ -611,30 +611,48 @@ int ImageTakeSnapshot(const char *ImageName, const char *Options)
 
 int ImageDriveBackup(const char *ImageName, const char *Options)
 {
-    char *Dev=NULL, *SnapFile=NULL, *Tempstr=NULL;
+    char *Dev=NULL, *BackupFile=NULL, *TempFile=NULL, *Tempstr=NULL;
     char *Name=NULL, *Value=NULL;
     ListNode *Qmp;
     const char *ptr;
 
+    TempFile=MCopyStr(TempFile, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".snap", NULL);
     ptr=GetNameValuePair(Options, "\\S", "=", &Name, &Value);
     while (ptr)
     {
         if (strcasecmp(Name, "dev")==0) Dev=CopyStr(Dev, Value);
-        if (strcasecmp(Name, "file")==0) SnapFile=CopyStr(SnapFile, Value);
+        if (strcasecmp(Name, "file")==0) BackupFile=CopyStr(BackupFile, Value);
         ptr=GetNameValuePair(ptr, "\\S", "=", &Name, &Value);
     }
 
-    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"drive-backup\", \"arguments\": { \"device\": \"", Dev, "\", \"target\": \"", SnapFile, "\", \"sync\": \"full\"} }\n", NULL);
+    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"blockdev-snapshot-sync\", \"arguments\": { \"device\": \"", Dev, "\", \"snapshot-file\": \"", TempFile, "\"} }\n", NULL);
     Qmp=QMPTransact(ImageName, Tempstr);
     ParserItemsDestroy(Qmp);
 
+    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"drive-backup\", \"arguments\": { \"device\": \"", Dev, "\", \"target\": \"", BackupFile, "\", \"sync\": \"full\"} }\n", NULL);
+    Qmp=QMPTransact(ImageName, Tempstr);
+    ParserItemsDestroy(Qmp);
+
+while (1)
+{
+    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"query-jobs\" }\n", NULL);
+    Qmp=QMPTransact(ImageName, Tempstr);
+    ParserItemsDestroy(Qmp);
+
+
+sleep(10);
+}
+
+    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"block-commit\", \"arguments\": { \"device\": \"", Dev, "\", \"top\": \"", TempFile, "\"} }\n", NULL);
+    Qmp=QMPTransact(ImageName, Tempstr);
+    ParserItemsDestroy(Qmp);
+
+    unlink(TempFile);
+
     Destroy(Dev);
-    Destroy(SnapFile);
+    Destroy(BackupFile);
     Destroy(Name);
     Destroy(Value);
     Destroy(Tempstr);
 }
-
-
-
 
