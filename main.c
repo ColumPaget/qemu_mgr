@@ -10,6 +10,7 @@ int main(int argc, char *argv[])
     ListNode *Actions, *Curr;
     char *Tempstr=NULL;
 
+    signal(SIGPIPE, SIG_IGN);
     Config=(TConfig *) calloc(1, sizeof(TConfig));
     FindOSCommands();
     Config->SoundDevices=FindSoundDevices(Config->SoundDevices);

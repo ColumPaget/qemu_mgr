@@ -30,6 +30,7 @@ void ImagesList(const char *Tag, const char *ListType);
 void OutputImageInfo(TImageInfo *Info);
 int ImageStart(const char *Name, const char *Config);
 int ImageStop(const char *Name, const char *Config);
+int ImageKill(const char *Name, const char *Config);
 int ImagePause(const char *Name, const char *Config);
 int ImageResume(const char *Name, const char *Config);
 int ImageReboot(const char *Name, const char *Config);

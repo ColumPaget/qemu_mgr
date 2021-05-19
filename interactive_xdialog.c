@@ -3,6 +3,7 @@
 #include "images.h"
 #include "os-commands.h"
 #include "image-config.h"
+#include "config-templates.h"
 #include "actions.h"
 #include "vnc.h"
 #include "qmp.h"
@@ -620,6 +621,7 @@ static int XDialogManageImage(const char *ImageName, TImageInfo *ImageInfo)
     Command=CatStr(Command, "'Reboot' ");
     Command=CatStr(Command, "'Shutdown' ");
     Command=CatStr(Command, "'Wakeup' ");
+    Command=CatStr(Command, "'Kill' ");
     Command=CatStr(Command, "'Screenshot' ");
     Command=CatStr(Command, "'Send Text' ");
     Command=CatStr(Command, "'Mount Drive Media' ");
@@ -643,6 +645,7 @@ static int XDialogManageImage(const char *ImageName, TImageInfo *ImageInfo)
         else if (strcmp(Tempstr, "Resume")==0) ImageResume(ImageName, "");
         else if (strcmp(Tempstr, "Reboot")==0) ImageReboot(ImageName, "");
         else if (strcmp(Tempstr, "Shutdown")==0) ImageStop(ImageName, "");
+        else if (strcmp(Tempstr, "Kill")==0) ImageKill(ImageName, "");
         else if (strcmp(Tempstr, "Wakeup")==0) ImageWakeup(ImageName, "");
         else if (strcmp(Tempstr, "Screenshot")==0) ImageScreenshot(ImageName, "");
         else if (strcmp(Tempstr, "Send Text")==0) XDialogSendText(ImageName);

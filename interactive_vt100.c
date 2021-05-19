@@ -6,6 +6,7 @@
 #include "screenshot.h"
 #include "actions.h"
 #include "devices.h"
+#include "mount.h"
 #include "config-templates.h"
 #include "vnc.h"
 #include "qmp.h"
@@ -43,6 +44,14 @@ static void TMenuItemDestroy(void *p_Item)
 }
 
 
+void QEMUMGR_TerminalBottomBar(const char *Title)
+{
+  TerminalCursorSave(Term);
+  TerminalCursorMove(Term, 0, term_high);
+  TerminalPutStr(Title, Term);
+  TerminalCursorRestore(Term);
+}
+
 
 void QEMUMGR_TerminalSetup(const char *TopTitle, const char *BottomTitle)
 {
@@ -53,12 +62,11 @@ void QEMUMGR_TerminalSetup(const char *TopTitle, const char *BottomTitle)
     //when we return
 
     TerminalGeometry(Term, &term_wide, &term_high);
-    TerminalCursorMove(Term, 0, term_high);
-    TerminalPutStr(BottomTitle, Term);
 
     TerminalCursorMove(Term, 0, 0);
     TerminalPutStr(TopTitle, Term);
 
+    QEMUMGR_TerminalBottomBar(BottomTitle);
 }
 
 
@@ -401,6 +409,7 @@ void QEMUMGR_TerminalDialogManageImage(const char *Name, TImageInfo *ImageInfo)
     ListAddNamedItem(MenuItems, "Reboot", NULL);
     ListAddNamedItem(MenuItems, "Shutdown", NULL);
     ListAddNamedItem(MenuItems, "Wakeup", NULL);
+    ListAddNamedItem(MenuItems, "Kill", NULL);
     ListAddNamedItem(MenuItems, "Screenshot", NULL);
     ListAddNamedItem(MenuItems, "Mount Drive Media", NULL);
 
@@ -424,6 +433,7 @@ void QEMUMGR_TerminalDialogManageImage(const char *Name, TImageInfo *ImageInfo)
         else if (strcmp(Choice->Tag, "Resume")==0) ImageResume(Name, "");
         else if (strcmp(Choice->Tag, "Reboot")==0) ImageReboot(Name, "");
         else if (strcmp(Choice->Tag, "Shutdown")==0) ImageStop(Name, "");
+        else if (strcmp(Choice->Tag, "Kill")==0) ImageKill(Name, "");
         else if (strcmp(Choice->Tag, "Wakeup")==0) ImageWakeup(Name, "");
         else if (strcmp(Choice->Tag, "Screenshot")==0) ImageScreenshot(Name, "");
         else if (strcmp(Choice->Tag, "Mount Drive Media")==0) QEMUMGR_TerminalMountDriveMedia(Name);
@@ -474,7 +484,7 @@ void StartVMWithSettings(const char *ImageName)
     int result;
 
     Tempstr=MCopyStr(Tempstr, "~B~wQEMU_MGR: Start VM '", ImageName, "'~>~0\n", NULL);
-    QEMUMGR_TerminalSetup(Tempstr, "~B~w~>~0");
+    QEMUMGR_TerminalSetup(Tempstr, "~B~wAwaiting Selection~>~0");
 
     ImageConf=ImageConfigLoad(ImageName);
 
@@ -486,6 +496,7 @@ void StartVMWithSettings(const char *ImageName)
 
     if (result==TRUE)
     {
+    	QEMUMGR_TerminalBottomBar("~B~wStarting VM~>~0");
         Tempstr=ImageConfigExpand(Tempstr, ImageConf);
         ActionPerform(ACT_START, ImageName, Tempstr);
     }

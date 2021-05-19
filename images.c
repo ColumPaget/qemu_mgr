@@ -35,30 +35,36 @@ TImageInfo *ImageGetRunningInfo(const char *ImageName)
         Info->start_time=Stat.st_mtime;
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-kvm\"}\n");
+	if (Qmp)
+	{
         Result=ParserOpenItem(Qmp, "return");
         ptr=ParserGetValue(Result, "present");
         if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_PRESENT;
         ptr=ParserGetValue(Result, "enabled");
         if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_ACTIVE;
         ParserItemsDestroy(Qmp);
+	}
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-name\"}\n");
-        ParserItemsDestroy(Qmp);
+        if (Qmp) ParserItemsDestroy(Qmp);
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-uuid\"}\n");
-        ParserItemsDestroy(Qmp);
+        if (Qmp) ParserItemsDestroy(Qmp);
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-status\"}\n");
+	if (Qmp)
+	{
         Result=ParserOpenItem(Qmp, "return");
         ptr=ParserGetValue(Result, "status");
         if (StrValid(ptr) && (strcasecmp(ptr, "paused")==0) ) Info->flags |= IMG_PAUSED;
         ParserItemsDestroy(Qmp);
+	}
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-cpus\"}\n");
-        ParserItemsDestroy(Qmp);
+        if (Qmp) ParserItemsDestroy(Qmp);
+
 
         STREAMClose(S);
-
         //must do this after STREAMClose when QMP connection is freed up
         Info->blockdevs=QMPListBlockDevs(Info->blockdevs, ImageName, BD_INCLUDE_MEDIA);
     }
@@ -153,9 +159,11 @@ static char *ImageStartParseVNC(char *RetStr, const char *Config)
 
     ptr=GetToken(Config, ":", &Token, 0); //consume "vnc:"
     ptr=GetToken(ptr, ":", &Token, 0); //will either be a host or a port
-    if (StrValid(ptr)) RetStr=MCatStr(RetStr, Token, ":", ptr, NULL);
-    else RetStr=MCatStr(RetStr, "127.0.0.1:", Token, NULL);
-
+    if (StrValid(Token) && StrValid(ptr)) RetStr=MCatStr(RetStr, Token, ":", ptr, NULL);
+    else if (StrValid(Token)) RetStr=MCatStr(RetStr, Token, ":0", NULL);
+    else if (StrValid(ptr)) RetStr=MCatStr(RetStr, "127.0.0.1", ":", ptr, NULL);
+    else RetStr=CatStr(RetStr, "127.0.0.1:0");
+   
     Destroy(Token);
 
     return(RetStr);
@@ -516,7 +524,31 @@ int ImageWakeup(const char *ImageName, const char *Options)
     return(TRUE);
 }
 
+int ImageKill(const char *ImageName, const char *Options)
+{
+    ListNode *Qmp;
+    char *Tempstr=NULL;
+    pid_t pid;
+    STREAM *S;
 
+    Qmp=QMPTransact(ImageName, "{\"execute\": \"system_powerdown\"}\n");
+    ParserItemsDestroy(Qmp);
+    sleep(3);
+
+
+    Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".pid", NULL);
+    S=STREAMOpen(Tempstr, "r");
+    if (S)
+    {
+    Tempstr=STREAMReadLine(Tempstr, S);
+    pid=atoi(Tempstr);
+    if (pid > 1) kill(pid, SIGKILL);
+    STREAMClose(S);
+    sleep(3);
+    }
+
+    return(TRUE);
+}
 
 
 int ImageMediaAdd(const char *ImageName, const char *Options)

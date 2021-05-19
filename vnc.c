@@ -87,6 +87,7 @@ void VNCLaunchViewer(const char *ViewerList, ListNode *Config)
 {
     char *Tempstr=NULL, *Token=NULL, *Viewer=NULL;
     const char *ptr="";
+    STREAM *S;
 
     ptr=GetToken(ViewerList, ",", &Viewer, 0);
     while (ptr)
@@ -105,7 +106,17 @@ void VNCLaunchViewer(const char *ViewerList, ListNode *Config)
         if (strncmp(ptr, "ip4:", 4)==0) ptr+=4;
         if (strncmp(ptr, "tcp:", 4)==0) ptr+=4;
         Tempstr=MCopyStr(Tempstr, Viewer, " ", ptr, NULL);
-        Spawn(Tempstr, "setsid");
+	S=STREAMSpawnCommand(Tempstr, "setsid noshell +stderr");
+	if (S)
+	{
+	Tempstr=STREAMReadLine(Tempstr, S);
+	while (Tempstr)
+	{
+	Tempstr=STREAMReadLine(Tempstr, S);
+	}	
+	STREAMClose(S);
+	}
+	
         _exit(0);
     }
 
