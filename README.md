@@ -71,11 +71,11 @@ qemu_mgr media-del <vm name> <vm device>
 qemu_mgr screenshot <vm name> <options>
         screenshot a running vm.
 qemu_mgr -?
-        print this help
+        print help
 qemu_mgr -help
-        print this help
+        print help
 qemu_mgr --help
-        print this help
+        print help
 qemu_mgr --help-vnc
         print help for VNC display
 qemu_mgr --help-media

@@ -468,6 +468,8 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "--help")==0) CommandLinePrintHelp();
     else if (strcasecmp(arg, "--help-vnc")==0) CommandLinePrintVNCHelp();
     else if (strcasecmp(arg, "--help-media")==0) CommandLinePrintMediaHelp();
+		else if (strcasecmp(arg, "-version")==0) CommandLinePrintVersion();
+		else if (strcasecmp(arg, "-v")==0) CommandLinePrintVersion();
 
     return(Actions);
 }
