@@ -260,22 +260,57 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
             if (strcasecmp(Token, "alsa")==0)
             {
                 ptr=GetToken(ptr, ":", &Token, 0);
-                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,out.dev=hw:", Token, NULL);
+                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,out.dev=hw:", Token, ",in.dev=hw:", Token, NULL);
             }
             else if (strcasecmp(Token, "oss")==0)
             {
                 ptr=GetToken(ptr, ":", &Token, 0);
-                RetStr=MCatStr(RetStr, " -audiodev driver=oss,id=oss,out.dev=", Token, NULL);
+                RetStr=MCatStr(RetStr, " -audiodev driver=oss,id=oss,out.dev=", Token, ",in.dev=", Token, NULL);
             }
 
-            ptr=ParserGetValue(Config, "audio-config");
-            if (StrValid(ptr))
-            {
-                if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
-                else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
-                else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
-            }
+
+         ptr=ParserGetValue(Config, "audio-config");
+         if (StrValid(ptr))
+         {
+               if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
+               else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
+               else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
+          }
+				}
+
+
+/*
+        ptr=ParserGetValue(Config, "host-audio");
+        ptr=GetToken(ptr, ":", &Token, 0);
+
+        if ( (! StrValid(Token) || (strcasecmp(Token, "none")==0) || (strcasecmp(Token, "default")==0)) )
+        {
+            //do nothing
         }
+        else
+        {
+            if (strcasecmp(Token, "alsa")==0)
+            {
+                ptr=GetToken(ptr, ":", &Token, 0);
+                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,in.dev=hw:", Token, NULL);
+            }
+            else if (strcasecmp(Token, "oss")==0)
+            {
+                ptr=GetToken(ptr, ":", &Token, 0);
+                RetStr=MCatStr(RetStr, " -audiodev driver=oss,id=oss,in.dev=", Token, NULL);
+            }
+
+
+         ptr=ParserGetValue(Config, "audio-config");
+         if (StrValid(ptr))
+         {
+               if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
+               else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
+               else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
+          }
+				}
+*/
+
 
         //make sure we have a space to seperate all this from other arguments
         RetStr=CatStr(RetStr, " ");

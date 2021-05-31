@@ -58,8 +58,10 @@ qemu_mgr list    <vm name> <options>
         list configured VMs.
 qemu_mgr vnc            <vm name> <options>
         connect to a vm with VNC. (VM must be configured with -display vnc)
-qemu_mgr send-text <vm name> <options>
+qemu_mgr send-text <vm name>
         read text line-by-line from stdin and send it to a running vm.
+qemu_mgr send-string <vm name> <string>
+        send '<string>' argument to a running vm.
 qemu_mgr send-key       <vm name> <key name>
         send keystroke 'key name' to a running vm.
 qemu_mgr media-add <vm name> <vm device> <path>

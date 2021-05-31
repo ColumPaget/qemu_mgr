@@ -355,8 +355,10 @@ static void CommandLinePrintHelp()
     printf("	list configured VMs.\n");
     printf("qemu_mgr vnc		<vm name> <options>\n");
     printf("	connect to a vm with VNC. (VM must be configured with -display vnc)\n");
-    printf("qemu_mgr send-text <vm name> <options>\n");
+    printf("qemu_mgr send-text <vm name>\n");
     printf("	read text line-by-line from stdin and send it to a running vm.\n");
+    printf("qemu_mgr send-string <vm name> <string>\n");
+    printf("	send string argument to a running vm.\n");
     printf("qemu_mgr send-key	<vm name> <key name>\n");
     printf("	send keystroke 'key name' to a running vm.\n");
     printf("qemu_mgr media-add <vm name> <vm device> <path>\n");

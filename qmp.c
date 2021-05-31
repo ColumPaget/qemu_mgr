@@ -136,6 +136,8 @@ char *QMPListBlockDevs(char *RetStr, const char *ImageName, int Flags)
     if (S)
     {
         Qmp=QMPCommand(S, "{\"execute\": \"query-block\"}\n");
+				if (Qmp)
+				{
         Result=ParserOpenItem(Qmp, "return");
         Curr=ListGetNext(Result);
         while (Curr)
@@ -148,6 +150,7 @@ char *QMPListBlockDevs(char *RetStr, const char *ImageName, int Flags)
             }
             Curr=ListGetNext(Curr);
         }
+				}
         STREAMClose(S);
     }
 
