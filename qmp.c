@@ -136,21 +136,21 @@ char *QMPListBlockDevs(char *RetStr, const char *ImageName, int Flags)
     if (S)
     {
         Qmp=QMPCommand(S, "{\"execute\": \"query-block\"}\n");
-				if (Qmp)
-				{
-        Result=ParserOpenItem(Qmp, "return");
-        Curr=ListGetNext(Result);
-        while (Curr)
+        if (Qmp)
         {
-            if (QMPBlockDevRequested(Curr, Flags))
+            Result=ParserOpenItem(Qmp, "return");
+            Curr=ListGetNext(Result);
+            while (Curr)
             {
-                RetStr=CatStr(RetStr, ParserGetValue(Curr, "device"));
-                if (Flags & BD_INCLUDE_MEDIA) RetStr=MCatStr(RetStr, ":", ParserGetValue(Curr, "inserted/image/filename"), NULL);
-                RetStr=CatStr(RetStr, ",");
+                if (QMPBlockDevRequested(Curr, Flags))
+                {
+                    RetStr=CatStr(RetStr, ParserGetValue(Curr, "device"));
+                    if (Flags & BD_INCLUDE_MEDIA) RetStr=MCatStr(RetStr, ":", ParserGetValue(Curr, "inserted/image/filename"), NULL);
+                    RetStr=CatStr(RetStr, ",");
+                }
+                Curr=ListGetNext(Curr);
             }
-            Curr=ListGetNext(Curr);
         }
-				}
         STREAMClose(S);
     }
 

@@ -35,15 +35,15 @@ TImageInfo *ImageGetRunningInfo(const char *ImageName)
         Info->start_time=Stat.st_mtime;
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-kvm\"}\n");
-	if (Qmp)
-	{
-        Result=ParserOpenItem(Qmp, "return");
-        ptr=ParserGetValue(Result, "present");
-        if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_PRESENT;
-        ptr=ParserGetValue(Result, "enabled");
-        if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_ACTIVE;
-        ParserItemsDestroy(Qmp);
-	}
+        if (Qmp)
+        {
+            Result=ParserOpenItem(Qmp, "return");
+            ptr=ParserGetValue(Result, "present");
+            if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_PRESENT;
+            ptr=ParserGetValue(Result, "enabled");
+            if (ptr && (strcmp(ptr, "true")==0)) Info->flags |= IMG_KVM_ACTIVE;
+            ParserItemsDestroy(Qmp);
+        }
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-name\"}\n");
         if (Qmp) ParserItemsDestroy(Qmp);
@@ -52,13 +52,13 @@ TImageInfo *ImageGetRunningInfo(const char *ImageName)
         if (Qmp) ParserItemsDestroy(Qmp);
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-status\"}\n");
-	if (Qmp)
-	{
-        Result=ParserOpenItem(Qmp, "return");
-        ptr=ParserGetValue(Result, "status");
-        if (StrValid(ptr) && (strcasecmp(ptr, "paused")==0) ) Info->flags |= IMG_PAUSED;
-        ParserItemsDestroy(Qmp);
-	}
+        if (Qmp)
+        {
+            Result=ParserOpenItem(Qmp, "return");
+            ptr=ParserGetValue(Result, "status");
+            if (StrValid(ptr) && (strcasecmp(ptr, "paused")==0) ) Info->flags |= IMG_PAUSED;
+            ParserItemsDestroy(Qmp);
+        }
 
         Qmp=QMPCommand(S, "{\"execute\": \"query-cpus\"}\n");
         if (Qmp) ParserItemsDestroy(Qmp);
@@ -163,7 +163,7 @@ static char *ImageStartParseVNC(char *RetStr, const char *Config)
     else if (StrValid(Token)) RetStr=MCatStr(RetStr, Token, ":0", NULL);
     else if (StrValid(ptr)) RetStr=MCatStr(RetStr, "127.0.0.1", ":", ptr, NULL);
     else RetStr=CatStr(RetStr, "127.0.0.1:0");
-   
+
     Destroy(Token);
 
     return(RetStr);
@@ -269,47 +269,47 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
             }
 
 
-         ptr=ParserGetValue(Config, "audio-config");
-         if (StrValid(ptr))
-         {
-               if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
-               else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
-               else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
-          }
-				}
-
-
-/*
-        ptr=ParserGetValue(Config, "host-audio");
-        ptr=GetToken(ptr, ":", &Token, 0);
-
-        if ( (! StrValid(Token) || (strcasecmp(Token, "none")==0) || (strcasecmp(Token, "default")==0)) )
-        {
-            //do nothing
+            ptr=ParserGetValue(Config, "audio-config");
+            if (StrValid(ptr))
+            {
+                if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
+                else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
+                else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
+            }
         }
-        else
-        {
-            if (strcasecmp(Token, "alsa")==0)
-            {
-                ptr=GetToken(ptr, ":", &Token, 0);
-                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,in.dev=hw:", Token, NULL);
-            }
-            else if (strcasecmp(Token, "oss")==0)
-            {
-                ptr=GetToken(ptr, ":", &Token, 0);
-                RetStr=MCatStr(RetStr, " -audiodev driver=oss,id=oss,in.dev=", Token, NULL);
-            }
 
 
-         ptr=ParserGetValue(Config, "audio-config");
-         if (StrValid(ptr))
-         {
-               if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
-               else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
-               else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
-          }
-				}
-*/
+        /*
+                ptr=ParserGetValue(Config, "host-audio");
+                ptr=GetToken(ptr, ":", &Token, 0);
+
+                if ( (! StrValid(Token) || (strcasecmp(Token, "none")==0) || (strcasecmp(Token, "default")==0)) )
+                {
+                    //do nothing
+                }
+                else
+                {
+                    if (strcasecmp(Token, "alsa")==0)
+                    {
+                        ptr=GetToken(ptr, ":", &Token, 0);
+                        RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,in.dev=hw:", Token, NULL);
+                    }
+                    else if (strcasecmp(Token, "oss")==0)
+                    {
+                        ptr=GetToken(ptr, ":", &Token, 0);
+                        RetStr=MCatStr(RetStr, " -audiodev driver=oss,id=oss,in.dev=", Token, NULL);
+                    }
+
+
+                 ptr=ParserGetValue(Config, "audio-config");
+                 if (StrValid(ptr))
+                 {
+                       if (strcasecmp(ptr, "set by guest")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=off", NULL);
+                       else if (strcasecmp(ptr, "buffered 48000Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=48000,out.buffer-length=80000,timer-period=5000", NULL);
+                       else if (strcasecmp(ptr, "buffered 44100Hz")==0) RetStr=MCatStr(RetStr, ",out.fixed-settings=on,out.frequency=44100,out.buffer-length=80000,timer-period=5000", NULL);
+                  }
+        				}
+        */
 
 
         //make sure we have a space to seperate all this from other arguments
@@ -575,11 +575,11 @@ int ImageKill(const char *ImageName, const char *Options)
     S=STREAMOpen(Tempstr, "r");
     if (S)
     {
-    Tempstr=STREAMReadLine(Tempstr, S);
-    pid=atoi(Tempstr);
-    if (pid > 1) kill(pid, SIGKILL);
-    STREAMClose(S);
-    sleep(3);
+        Tempstr=STREAMReadLine(Tempstr, S);
+        pid=atoi(Tempstr);
+        if (pid > 1) kill(pid, SIGKILL);
+        STREAMClose(S);
+        sleep(3);
     }
 
     return(TRUE);
@@ -700,15 +700,15 @@ int ImageDriveBackup(const char *ImageName, const char *Options)
     Qmp=QMPTransact(ImageName, Tempstr);
     ParserItemsDestroy(Qmp);
 
-while (1)
-{
-    Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"query-jobs\" }\n", NULL);
-    Qmp=QMPTransact(ImageName, Tempstr);
-    ParserItemsDestroy(Qmp);
+    while (1)
+    {
+        Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"query-jobs\" }\n", NULL);
+        Qmp=QMPTransact(ImageName, Tempstr);
+        ParserItemsDestroy(Qmp);
 
 
-sleep(10);
-}
+        sleep(10);
+    }
 
     Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"block-commit\", \"arguments\": { \"device\": \"", Dev, "\", \"top\": \"", TempFile, "\"} }\n", NULL);
     Qmp=QMPTransact(ImageName, Tempstr);

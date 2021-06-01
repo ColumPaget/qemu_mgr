@@ -46,10 +46,10 @@ static void TMenuItemDestroy(void *p_Item)
 
 void QEMUMGR_TerminalBottomBar(const char *Title)
 {
-  TerminalCursorSave(Term);
-  TerminalCursorMove(Term, 0, term_high);
-  TerminalPutStr(Title, Term);
-  TerminalCursorRestore(Term);
+    TerminalCursorSave(Term);
+    TerminalCursorMove(Term, 0, term_high);
+    TerminalPutStr(Title, Term);
+    TerminalCursorRestore(Term);
 }
 
 
@@ -496,7 +496,7 @@ void StartVMWithSettings(const char *ImageName)
 
     if (result==TRUE)
     {
-    	QEMUMGR_TerminalBottomBar("~B~wStarting VM~>~0");
+        QEMUMGR_TerminalBottomBar("~B~wStarting VM~>~0");
         Tempstr=ImageConfigExpand(Tempstr, ImageConf);
         ActionPerform(ACT_START, ImageName, Tempstr);
     }
