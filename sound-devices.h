@@ -4,6 +4,6 @@
 
 #include "common.h"
 
-char *FindSoundDevices(char *RetStr);
+char *SoundDevicesLoad(char *RetStr);
 
 #endif

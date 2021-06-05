@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     Config=(TConfig *) calloc(1, sizeof(TConfig));
     FindOSCommands();
-    Config->SoundDevices=FindSoundDevices(Config->SoundDevices);
+    Config->SoundDevices=SoundDevicesLoad(Config->SoundDevices);
 
     Actions=CommandLineParse(argc, argv);
     Curr=ListGetNext(Actions);

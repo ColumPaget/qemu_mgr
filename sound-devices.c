@@ -1,30 +1,23 @@
 #include "sound-devices.h"
 #include <glob.h>
 
-char *FindSoundDevices(char *RetStr)
+
+
+char *SoundDevicesLoadALSAHardware(char *RetStr)
 {
     char *Tempstr=NULL, *Token=NULL;
     const char *ptr;
-    glob_t Glob;
-    int i;
     STREAM *S;
 
-    RetStr=CopyStr(RetStr, "default");
-
-    glob("/dev/dsp*", 0, 0, &Glob);
-    for (i=0; i < Glob.gl_pathc; i++)
-    {
-        RetStr=MCatStr(RetStr, ",oss:", Glob.gl_pathv[i], NULL);
-    }
-
-    S=STREAMOpen("/proc/asound/cards", "r");
+   RetStr=MCatStr(RetStr, ",alsa:default", NULL);
+   S=STREAMOpen("/proc/asound/cards", "r");
     Tempstr=STREAMReadLine(Tempstr, S);
     while (Tempstr)
     {
         StripLeadingWhitespace(Tempstr);
         StripTrailingWhitespace(Tempstr);
         ptr=GetToken(Tempstr, " ", &Token, 0);
-        RetStr=MCatStr(RetStr, ",alsa:", Token, ":", NULL);
+        RetStr=MCatStr(RetStr, ",alsa:", Token, ".0:", NULL);
         ptr=GetToken(ptr, ":", &Token, 0);
         while (isspace(*ptr)) ptr++;
         RetStr=CatStr(RetStr, ptr);
@@ -36,9 +29,71 @@ char *FindSoundDevices(char *RetStr)
     }
     STREAMClose(S);
 
-    globfree(&Glob);
-    Destroy(Tempstr);
+	  Destroy(Tempstr);
     Destroy(Token);
 
+		return(RetStr);
+}
+
+
+char *SoundDevicesLoadALSAConfigFile(char *RetStr, const char *ConfigPath)
+{
+  char *Tempstr=NULL, *Token=NULL;
+  const char *ptr;
+	STREAM *S;
+
+	S=STREAMOpen(ConfigPath, "r");
+	if (S)
+	{
+	Tempstr=STREAMReadDocument(Tempstr, S);
+
+	ptr=GetToken(Tempstr, "\\S|{|}", &Token, GETTOKEN_QUOTES | GETTOKEN_MULTI_SEP);
+	while (ptr)
+	{
+	if (
+			(strncmp(Token, "pcm.", 4)==0) &&
+			(strcmp(Token, "pcm.!default") !=0)
+		 )
+	{
+        RetStr=MCatStr(RetStr, ",alsa:", Token+4, NULL);
+	}
+	ptr=GetToken(ptr, "\\S|{|}", &Token, GETTOKEN_QUOTES | GETTOKEN_MULTI_SEP);
+	}
+
+	STREAMClose(S);
+	}
+
+  Destroy(Tempstr);
+  Destroy(Token);
+
+	return(RetStr);
+}
+
+
+char *SoundDevicesLoadOSS(char *RetStr)
+{
+    glob_t Glob;
+    int i;
+
+
+    glob("/dev/dsp*", 0, 0, &Glob);
+    for (i=0; i < Glob.gl_pathc; i++)
+    {
+        RetStr=MCatStr(RetStr, ",oss:", Glob.gl_pathv[i], NULL);
+    }
+
+ 
+    globfree(&Glob);
     return(RetStr);
+}
+
+
+char *SoundDevicesLoad(char *RetStr)
+{
+   	RetStr=CopyStr(RetStr, "default");
+		RetStr=SoundDevicesLoadOSS(RetStr);
+		RetStr=SoundDevicesLoadALSAHardware(RetStr);
+		RetStr=SoundDevicesLoadALSAConfigFile(RetStr, "/etc/asound.conf");
+
+		return(RetStr);
 }
