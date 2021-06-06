@@ -6,5 +6,6 @@
 int InteractiveSetup(const char *Config);
 int InteractiveChooseMode(const char *Hint);
 const char *InteractiveQueryRootPassword(const char *Title);
+int InteractiveBusyWindow(const char *Title, const char *Msg);
 
 #endif

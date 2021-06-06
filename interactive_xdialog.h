@@ -8,5 +8,6 @@ void XDialogFindXDialogCommand(const char *XDialogCommandList);
 int XDialogSetup(const char *Config);
 char *XDialogQuery(char *RetStr, const char *Title, const char *Text);
 const char *XDialogQueryRootPassword(const char *Title);
+pid_t XDialogBusyWindow(const char *Title, const char *Msg);
 
 #endif

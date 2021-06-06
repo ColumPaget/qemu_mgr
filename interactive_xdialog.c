@@ -47,6 +47,18 @@ char *XDialogRun(char *RetStr, const char *Command, int ReturnExitStatus)
 }
 
 
+pid_t XDialogBusyWindow(const char *Title, const char *Msg)
+{
+    char *Tempstr=NULL;
+    pid_t Pid;
+
+    Tempstr=MCopyStr(Tempstr, Config->DialogCmd, " --info --title '", Title, "' --text '", Msg, "' ", NULL);
+    Pid=Spawn(Tempstr, "");
+    Destroy(Tempstr);
+
+    return(Pid);
+}
+
 
 char *XDialogNewForm(char *RetStr, const char *Title, const char *Text)
 {
@@ -276,10 +288,8 @@ char *QEMUFormatAudio(char *RetStr, const char *GuestDev, const char *HostDev, c
     RetStr=MCatStr(RetStr, " guest-audio=", GuestDev, NULL);
     if (strcmp(GuestDev, "none") !=0)
     {
-        ptr=GetToken(HostDev, ":", &Token, 0);
-        RetStr=MCatStr(RetStr, " host-audio=", Token, ":", NULL);
-        ptr=GetToken(ptr, ":", &Token, 0);
-        RetStr=CatStr(RetStr, Token);
+        ptr=GetToken(HostDev, " ", &Token, 0);
+        RetStr=MCatStr(RetStr, " host-audio=", Token, NULL);
 
         RetStr=MCatStr(RetStr, " audio-config='", HostConf, "' ", NULL);
     }
@@ -708,7 +718,7 @@ int XDialogSetup(const char *SetupInfo)
     glob_t Glob;
     int RetVal=FALSE, i;
 
-    XDialogFindXDialogCommand("qarma,zenity,xdialog");
+    XDialogFindXDialogCommand("yad,qarma,zenity,xdialog");
 
     Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/*.qemu_mgr", NULL);
     glob(Tempstr, 0, 0, &Glob);

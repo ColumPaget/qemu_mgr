@@ -3,17 +3,18 @@
 #include "interactive_xdialog.h"
 #include "interactive_vt100.h"
 
-void InteractiveStartImage(const char *XDialogCommand, const char *Name)
-{
-
-
-}
-
 
 int InteractiveSetup(const char *SetupInfo)
 {
     if (Config->InteractMode == IA_XDIALOG) XDialogSetup(SetupInfo);
     else if (Config->InteractMode == IA_TERMINAL) QEMUMGR_TerminalDialogSetup(SetupInfo);
+}
+
+
+int InteractiveBusyWindow(const char *Title, const char *Msg)
+{
+    if (Config->InteractMode == IA_XDIALOG) XDialogBusyWindow(Title, Msg);
+//    else if (Config->InteractMode == IA_TERMINAL) QEMUMGR_TerminalDialogSetup(SetupInfo);
 }
 
 
@@ -58,6 +59,7 @@ const char *InteractiveQueryRootPassword(const char *Title)
     case IA_XDIALOG:
         Config->RootPassword=XDialogQuery(Config->RootPassword, "Enter Root Password", Title);
         break;
+
     default:
         printf("\n\r%s: ", Title);
         fflush(NULL);

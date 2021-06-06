@@ -4,6 +4,7 @@
 #include "tap-netcfg.h"
 #include "os-commands.h"
 #include "image-config.h"
+#include "interactive.h"
 #include "vnc.h"
 #include "kvm.h"
 
@@ -237,19 +238,28 @@ static char *ImageSetupPassthrough(char *RetStr, const char *ImageName, const ch
 }
 
 
-static char *AlsaFormatDev(char *RetStr, const char *DevStr)
+static const char *AlsaFormatDev(const char *Config, char **DevStr)
 {
-char *Token=NULL;
-const char *ptr;
+  char *Tempstr=NULL, *Token=NULL;
+  const char *ptr;
 
-ptr=GetToken(DevStr, ".", &RetStr, 0);
-RetStr=CatStr(RetStr, ",,");
-ptr=GetToken(ptr, ".", &Token, 0);
-RetStr=CatStr(RetStr, Token);
+	Tempstr=CopyStr(Tempstr, Config);
+	StrTruncChar(Tempstr, ' ');
+	//if we get 'hw' that means we have a device name in format 'hw:<val>.<val>', which we have to
+	//reformat to hw:<val>,,<val> to get it into qemu
+	if (strncmp(Tempstr, "hw:",3)==0) 
+	{
+	  ptr=GetToken(Tempstr, ":", &Token, 0);
+	  ptr=GetToken(ptr, ".", &Token, 0);
+	  *DevStr=MCopyStr(*DevStr,"hw:", Token, ",,", ptr, NULL);
+	}
+	else *DevStr=CopyStr(*DevStr, Tempstr);
 
-Destroy(Token);
-return(RetStr);
+  Destroy(Tempstr);
+  Destroy(Token);
+  return(ptr);
 }
+
 
 static char *ImageSetupAudio(char *RetStr, ListNode *Config)
 {
@@ -270,11 +280,11 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
         }
         else
         {
+            if (strcasecmp(Token, "pulseaudio")==0) RetStr=MCatStr(RetStr, " -audiodev driver=pa", NULL);
             if (strcasecmp(Token, "alsa")==0)
             {
-                ptr=GetToken(ptr, ":", &Token, 0);
-								Tempstr=AlsaFormatDev(Tempstr, Token);
-                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,out.dev=hw:", Tempstr, ",in.dev=hw:", Tempstr, NULL);
+                ptr=AlsaFormatDev(ptr, &Tempstr);
+                RetStr=MCatStr(RetStr, " -audiodev driver=alsa,id=alsa,out.dev=", Tempstr, ",in.dev=", Tempstr, NULL);
             }
             else if (strcasecmp(Token, "oss")==0)
             {
@@ -298,7 +308,7 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
     }
 
     Destroy(Token);
-		Destroy(Tempstr);
+    Destroy(Tempstr);
 
     return(RetStr);
 }
@@ -363,8 +373,9 @@ static char *ImageSetupUser(char *RetStr, ListNode *Config)
 void ImageCreate(const char *ImageName, const char *Config)
 {
     ListNode *ConfTree;
-    char *Tempstr=NULL, *Path=NULL;
+    char *Tempstr=NULL, *Path=NULL, *BusyMsg=NULL;
     const char *p_Src;
+    pid_t pid;
 
     Path=MCopyStr(Path, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".img", NULL);
     Tempstr=MCopyStr(Tempstr, Config, " image=", Path, NULL);
@@ -375,8 +386,9 @@ void ImageCreate(const char *ImageName, const char *Config)
     if (StrValid(p_Src))
     {
         Tempstr=MCopyStr(Tempstr, "qemu-img create -f qcow2 ", Path,  " ", ParserGetValue(ConfTree, "size"), NULL);
-        fprintf(stderr, "CREATE: %s\n", Tempstr);
+        pid=InteractiveBusyWindow("qemu_mgr: Busy", "Please wait, creating image file");
         system(Tempstr);
+        kill(pid, SIGTERM);
 
         Tempstr=MCopyStr(Tempstr, "qemu-system-x86_64", " ", " -m 2047 ", NULL);
         if (KVMAvailable()) Tempstr=CatStr(Tempstr, " -enable-kvm -cpu host ");
@@ -388,10 +400,13 @@ void ImageCreate(const char *ImageName, const char *Config)
         p_Src=ParserGetValue(ConfTree, "src-img");
 
         Tempstr=MCopyStr(Tempstr, "qemu-img convert -O qcow2 ",  " '", p_Src, "' '", ParserGetValue(ConfTree, "image"), "'", NULL);
-        fprintf(stderr, "RUN: %s\n", Tempstr);
+
+        pid=InteractiveBusyWindow("qemu_mgr: Busy", "Please wait, importing image");
         system(Tempstr);
+        kill(pid, SIGTERM);
     }
 
+    Destroy(BusyMsg);
     Destroy(Tempstr);
     Destroy(Path);
 }
@@ -471,7 +486,6 @@ int ImageStart(const char *ImageName, const char *Options)
     Command=MCatStr(Command, " -qmp unix:", Path, ",server,nowait ", NULL);
 
 
-    fprintf(stderr, "Run: %s\n", Command);
     ptr=ParserGetValue(Config, "sudo");
 
     if ( (getuid() > 0) && StrValid(ptr) )
