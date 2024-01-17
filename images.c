@@ -90,7 +90,7 @@ void ImageInfoDestroy(void *p_ImageInfo)
 
 
 
-void ImageAdd(const char *ImageName, const char *Config)
+void ImageAdd(const char *ImageName, const char *VMConfig)
 {
     char *Tempstr=NULL, *Name=NULL, *Value=NULL;
     STREAM *S;
@@ -99,7 +99,7 @@ void ImageAdd(const char *ImageName, const char *Config)
     S=ImageConfigOpen(ImageName, "w");
     if (S)
     {
-        ImageConfigSave(S, ImageName, Config);
+        ImageConfigSave(S, ImageName, VMConfig);
         STREAMClose(S);
     }
 
@@ -269,7 +269,14 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
     ptr=ParserGetValue(Config, "guest-audio");
     if ( StrValid(ptr) && (strcmp(ptr, "none") !=0) )
     {
-        RetStr=MCatStr(RetStr, " -soundhw ", ptr, NULL);
+	if (GetQemuMajorVersion() > 5) 
+	{
+	if (strcmp(ptr, "ac97")==0) RetStr=CatStr(RetStr, " -device AC97");
+	else if (strcmp(ptr, "hda")==0) RetStr=CatStr(RetStr, " -device intel-hda");
+	else if (strcmp(ptr, "es1370")==0) RetStr=CatStr(RetStr, " -device ES1370");
+        else RetStr=MCatStr(RetStr, " -device ", ptr, NULL);
+	}
+        else RetStr=MCatStr(RetStr, " -soundhw ", ptr, NULL);
 
         ptr=ParserGetValue(Config, "host-audio");
         ptr=GetToken(ptr, ":", &Token, 0);
@@ -280,7 +287,7 @@ static char *ImageSetupAudio(char *RetStr, ListNode *Config)
         }
         else
         {
-            if (strcasecmp(Token, "pulseaudio")==0) RetStr=MCatStr(RetStr, " -audiodev driver=pa", NULL);
+            if (strcasecmp(Token, "pulseaudio")==0) RetStr=MCatStr(RetStr, " -audiodev driver=pa,id=snd0", NULL);
             if (strcasecmp(Token, "alsa")==0)
             {
                 ptr=AlsaFormatDev(ptr, &Tempstr);
@@ -370,7 +377,7 @@ static char *ImageSetupUser(char *RetStr, ListNode *Config)
 
 
 
-void ImageCreate(const char *ImageName, const char *Config)
+void ImageCreate(const char *ImageName, const char *VMConfig)
 {
     ListNode *ConfTree;
     char *Tempstr=NULL, *Path=NULL, *BusyMsg=NULL;
@@ -378,7 +385,7 @@ void ImageCreate(const char *ImageName, const char *Config)
     pid_t pid;
 
     Path=MCopyStr(Path, GetCurrUserHomeDir(), "/.qemu_mgr/", ImageName, ".img", NULL);
-    Tempstr=MCopyStr(Tempstr, Config, " image=", Path, NULL);
+    Tempstr=MCopyStr(Tempstr, VMConfig, " image=", Path, NULL);
     ImageAdd(ImageName, Tempstr);
     ConfTree=ImageConfigLoad(ImageName);
 
@@ -388,7 +395,7 @@ void ImageCreate(const char *ImageName, const char *Config)
         Tempstr=MCopyStr(Tempstr, "qemu-img create -f qcow2 ", Path,  " ", ParserGetValue(ConfTree, "size"), NULL);
         pid=InteractiveBusyWindow("qemu_mgr: Busy", "Please wait, creating image file");
         system(Tempstr);
-        kill(pid, SIGTERM);
+        if (pid > 0) kill(pid, SIGTERM);
 
         Tempstr=MCopyStr(Tempstr, "qemu-system-x86_64", " ", " -m 2047 ", NULL);
         if (KVMAvailable()) Tempstr=CatStr(Tempstr, " -enable-kvm -cpu host ");
@@ -403,7 +410,7 @@ void ImageCreate(const char *ImageName, const char *Config)
 
         pid=InteractiveBusyWindow("qemu_mgr: Busy", "Please wait, importing image");
         system(Tempstr);
-        kill(pid, SIGTERM);
+        if (pid > 0) kill(pid, SIGTERM);
     }
 
     Destroy(BusyMsg);
@@ -415,93 +422,107 @@ void ImageCreate(const char *ImageName, const char *Config)
 
 int ImageStart(const char *ImageName, const char *Options)
 {
-    ListNode *Config;
+    ListNode *VMConfig;
     char *Command=NULL, *Tempstr=NULL, *Path=NULL;
     char *ManagementDir=NULL;
     const char *ptr;
     int RunAsRoot=FALSE;
 
-    Config=ImageConfigLoad(ImageName);
-    if (! Config) return(FALSE);
+    VMConfig=ImageConfigLoad(ImageName);
+    if (! VMConfig) 
+		{
+			Tempstr=MCopyStr(Tempstr, "No registered VM matches '", ImageName, "'", NULL);
+			InteractiveErrorMessage("Fatal Error", Tempstr);
+			Destroy(Tempstr);
+			return(FALSE);
+		}
 
     ManagementDir=MCopyStr(ManagementDir, GetCurrUserHomeDir(), "/.qemu_mgr/", NULL);
-    ImageConfigUpdate(Config, Options);
-    Path=CopyStr(Path, ParserGetValue(Config, "image"));
+    ImageConfigUpdate(VMConfig, Options);
+    Path=CopyStr(Path, ParserGetValue(VMConfig, "image"));
 
+		if (access(Path, F_OK)==0)
+		{
     Command=MCopyStr(Command, "qemu-system-x86_64", " -name ", ImageName,  NULL);
     if (KVMAvailable()) Command=CatStr(Command, " -enable-kvm -cpu host ");
 
-    ptr=ParserGetValue(Config, "smp");
+    ptr=ParserGetValue(VMConfig, "smp");
     //if (StrValid(ptr)) Command=MCatStr(Command, " -smp sockets=1,dies=1,cores=", ptr, NULL);
     if (StrValid(ptr)) Command=MCatStr(Command, " -smp ", ptr, NULL);
 
-    ptr=ParserGetValue(Config, "machine");
+    ptr=ParserGetValue(VMConfig, "machine");
     if (StrValid(ptr)) Command=MCatStr(Command, " -M ", ptr, NULL);
 
     Command=MCatStr(Command, " -pidfile ", ManagementDir, ImageName, ".pid", NULL);
     Command=CatStr(Command, " -usb -device usb-tablet ");
-    ptr=ParserGetValue(Config, "disk-controller");
+    ptr=ParserGetValue(VMConfig, "disk-controller");
     if (StrValid(ptr))
     {
-        if (strcasecmp(ptr, "scsi")==0) Command=MCatStr(Command, " -device megasas,id=scsi0 -drive if=", ptr, ",file='", Path, "'", NULL);
-        else Command=MCatStr(Command, " -drive if=", ptr, ",file='", Path, "'", NULL);
+        if (strcasecmp(ptr, "scsi")==0) Command=MCatStr(Command, " -device megasas,id=scsi0 -drive if=", ptr, ",file=", Path, NULL);
+        else Command=MCatStr(Command, " -drive if=", ptr, ",file=", Path, NULL);
     }
     else Command=MCatStr(Command, " '", Path, "' ", NULL);
 
     //Command=MCatStr(Command, " -device sdhci-pci -device sd-card,drive=mmc0 -drive id=mmc0,if=none ", NULL);
 
 
-    Command=ImageSetupDisplay(Command, Config);
+    Command=ImageSetupDisplay(Command, VMConfig);
 
 
-    ptr=ParserGetValue(Config, "chroot");
+    ptr=ParserGetValue(VMConfig, "chroot");
     if (StrValid(ptr))
     {
         Command=MCatStr(Command, " -chroot ", ptr, NULL);
     }
 
-    ptr=ParserGetValue(Config, "memory");
+    ptr=ParserGetValue(VMConfig, "memory");
     if (StrValid(ptr))
     {
         Command=MCatStr(Command, " -m ", ptr, NULL);
     }
 
-    Command=ImageSetupAudio(Command, Config);
+    Command=ImageSetupAudio(Command, VMConfig);
 
-    ptr=ParserGetValue(Config, "prealloc");
+    ptr=ParserGetValue(VMConfig, "prealloc");
     if (strtobool(ptr)) Command=CatStr(Command, " -mem-prealloc ");
 
-    ptr=ParserGetValue(Config, "network");
-    if (StrValid(ptr)) Command=ImageSetupNet(Command, ImageName, Config);
+    ptr=ParserGetValue(VMConfig, "network");
+    if (StrValid(ptr)) Command=ImageSetupNet(Command, ImageName, VMConfig);
 
-    ptr=ParserGetValue(Config, "passthrough");
+    ptr=ParserGetValue(VMConfig, "passthrough");
     if (StrValid(ptr)) Command=ImageSetupPassthrough(Command, ImageName, ptr);
 
     //this must happen after SetupNetwork, as SetupNetwork can specify the need to use sudo
     //for TAP/TUN networking
-    Command=ImageSetupUser(Command, Config);
+    Command=ImageSetupUser(Command, VMConfig);
 
     Path=MCopyStr(Path, ManagementDir, ImageName, ".qmp", NULL);
     MakeDirPath(Path, 0700);
     Command=MCatStr(Command, " -qmp unix:", Path, ",server,nowait ", NULL);
 
 
-    ptr=ParserGetValue(Config, "sudo");
+    ptr=ParserGetValue(VMConfig, "sudo");
 
     if ( (getuid() > 0) && StrValid(ptr) )
     {
         Path=RunCommand(Path, "/sbin/modprobe tap tun", RUNCMD_ROOT | RUNCMD_DAEMON);
-        Path=RunCommand(Path, Command, RUNCMD_ROOT | RUNCMD_DAEMON);
+        Path=RunCommand(Path, Command, RUNCMD_ROOT | RUNCMD_NOSHELL | RUNCMD_DAEMON);
     }
     else Spawn(Command, "setsid");
 
     sleep(1);
 
-    ptr=ParserGetValue(Config, "password");
+    ptr=ParserGetValue(VMConfig, "password");
     if (StrValid(ptr)) VNCSetPassword(ImageName, ptr);
 
-    ptr=ParserGetValue(Config, "vncviewer");
-    if (StrValid(ptr)) VNCLaunchViewer(ptr, Config);
+    ptr=ParserGetValue(VMConfig, "vncviewer");
+    if (StrValid(ptr)) VNCLaunchViewer(ptr, VMConfig);
+		}
+		else 
+		{
+			Tempstr=MCopyStr(Tempstr, "No image file '", Path, "'", NULL);
+			InteractiveErrorMessage("Fatal Error", Tempstr);
+		}
 
     Destroy(ManagementDir);
     Destroy(Command);
@@ -608,7 +629,6 @@ int ImageMediaAdd(const char *ImageName, const char *Options)
         //try older 'change' command
         Tempstr=MCopyStr(Tempstr, "{ \"execute\": \"change\", \"arguments\": { \"device\": \"", Dev, "\", \"target\": \"", Media, "\", \"arg\": \"raw\"} }\n", NULL);
         Qmp=QMPTransact(ImageName, Tempstr);
-        printf("MT: %s\n", Tempstr);
     }
 
     ParserItemsDestroy(Qmp);

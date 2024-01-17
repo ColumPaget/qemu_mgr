@@ -2,6 +2,17 @@
 
 TConfig *Config=NULL;
 
+int GetQemuMajorVersion()
+{
+char *Token=NULL;
+int val;
+
+GetToken(Config->QemuVersion, ".", &Token, 0);
+val=atoi(Token);
+Destroy(Token);
+
+return(val);
+}
 
 char *GetNamedValue(char *RetStr, const char *Config, const char *Requested)
 {

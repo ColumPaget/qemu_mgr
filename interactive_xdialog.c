@@ -59,6 +59,17 @@ pid_t XDialogBusyWindow(const char *Title, const char *Msg)
     return(Pid);
 }
 
+pid_t XDialogErrorMessage(const char *Title, const char *Msg)
+{
+    char *Tempstr=NULL;
+    pid_t Pid;
+
+    Tempstr=MCopyStr(Tempstr, Config->DialogCmd, " --error --title '", Title, "' --text '", Msg, "' ", NULL);
+    Pid=Spawn(Tempstr, "");
+    Destroy(Tempstr);
+
+    return(Pid);
+}
 
 char *XDialogNewForm(char *RetStr, const char *Title, const char *Text)
 {

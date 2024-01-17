@@ -108,6 +108,7 @@ char *SoundDevicesLoadPULSE(char *RetStr)
         ptr=GetToken(ptr, ":", &Dir, 0);
     }
 
+            RetStr=CatStr(RetStr, ",pulseaudio");
     Destroy(Tempstr);
     Destroy(Dir);
     return(RetStr);

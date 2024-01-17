@@ -1,11 +1,14 @@
 
 
-AC_INIT([main.c])
+AC_INIT
 AC_PROG_CC 
-AC_LANG_C 
+AC_LANG([C]) 
 AC_PROG_MAKE_SET 
-AC_PROG_INSTALL 
-AC_HEADER_STDC 
+# Autoupdate added the next two lines to ensure that your configure
+# script's behavior did not change.  They are probably safe to remove.
+AC_CHECK_INCLUDES_DEFAULT
+AC_PROG_EGREP
+ 
 AC_SYS_LARGEFILE
 
 
@@ -52,8 +55,9 @@ then
 	AC_CHECK_LIB(crypto,EVP_CIPHER_CTX_init,,)
 
 else
-  AC_SUBST(LIBUSEFUL_BUNDLED,"libUseful-4/libUseful.a")
-  AC_CONFIG_SUBDIRS([libUseful-4])
+  AC_SUBST(HAVE_LIBUSEFUL_5_LIBUSEFUL_H)
+  AC_SUBST(LIBUSEFUL_BUNDLED,"libUseful-5/libUseful.a")
+  AC_CONFIG_SUBDIRS([libUseful-5])
 fi
 
-AC_OUTPUT(Makefile)
+AC_OUTPUT

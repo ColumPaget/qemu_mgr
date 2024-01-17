@@ -1,7 +1,7 @@
-OBJ=common.o command-line.o os-commands.o kvm.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o libUseful-4/libUseful.a
+OBJ=common.o command-line.o os-commands.o kvm.o devices.o sound-devices.o actions.o interactive.o interactive_xdialog.o interactive_vt100.o tap-netcfg.o images.o image-config.o config-templates.o qmp.o mount.o vnc.o screenshot.o 
 
-FLAGS=-g -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -D_FILE_OFFSET_BITS=64
-LIBS= libUseful-4/libUseful.a
+FLAGS=-g -DPACKAGE_NAME=\"\" -DPACKAGE_TARNAME=\"\" -DPACKAGE_VERSION=\"\" -DPACKAGE_STRING=\"\" -DPACKAGE_BUGREPORT=\"\" -DPACKAGE_URL=\"\" -DSTDC_HEADERS=1 -DHAVE_SYS_TYPES_H=1 -DHAVE_SYS_STAT_H=1 -DHAVE_STDLIB_H=1 -DHAVE_STRING_H=1 -DHAVE_MEMORY_H=1 -DHAVE_STRINGS_H=1 -DHAVE_INTTYPES_H=1 -DHAVE_STDINT_H=1 -DHAVE_UNISTD_H=1 -DHAVE_LIBUSEFUL_5_LIBUSEFUL_H=1 -DHAVE_LIBUSEFUL_5=1
+LIBS=-lUseful-5  
 
 all: $(OBJ)
 	gcc $(FLAGS) -oqemu_mgr main.c $(OBJ) $(LIBS)

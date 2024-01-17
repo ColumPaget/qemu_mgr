@@ -13,6 +13,15 @@ int main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
     Config=(TConfig *) calloc(1, sizeof(TConfig));
     FindOSCommands();
+
+    if (! StrValid(OSCommandFindPath("qemu-system-x86_64"))) 
+    {
+	printf("ERROR: Can't find qemu-system-x86_64. Is it installed?\n");
+	exit(1);
+    }
+
+OSCommandQemuGetVersion();
+
     Config->SoundDevices=SoundDevicesLoad(Config->SoundDevices);
 
     Actions=CommandLineParse(argc, argv);

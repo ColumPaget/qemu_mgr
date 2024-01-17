@@ -8,7 +8,7 @@ ListNode *CommandPaths=NULL;
 void FindOSCommands()
 {
     char *Tempstr=NULL, *File=NULL;
-    const char *Commands[]= {"ifconfig", "iptables", "route", "ip", "qemu-system-x86_64", "qarma", "zenity", "yad", "xdialog", "vncviewer", "tightvnc", "tigervnc", "mkisofs", "tar", "zip", "7za", "gzip", "xz", NULL};
+    const char *Commands[]= {"ifconfig", "iptables", "route", "ip", "qemu-system-x86_64", "qarma", "zenity", "yad", "xdialog", "vncviewer", "tightvnc", "tigervnc", "mkisofs", "tar", "zip", "7za", "gzip", "xz", "su", "sudo", NULL};
     int i;
 
     if (! CommandPaths) CommandPaths=ListCreate();
@@ -23,6 +23,25 @@ void FindOSCommands()
     Destroy(File);
 }
 
+void OSCommandQemuGetVersion()
+{
+const char *p_ExecPath;
+char *Tempstr=NULL;
+STREAM *S;
+
+p_ExecPath=OSCommandFindPath("qemu-system-x86_64");
+Tempstr=MCopyStr(Tempstr, "cmd:", p_ExecPath, " --version", NULL);
+S=STREAMOpen(Tempstr, "");
+if (S)
+{
+Tempstr=STREAMReadLine(Tempstr, S);
+if (strncmp(Tempstr, "QEMU emulator version ",22)==0) GetToken(Tempstr+22, "\\S", & (Config->QemuVersion), 0);
+STREAMClose(S);
+}
+
+Destroy(Tempstr);
+}
+
 
 const char *OSCommandFindPath(const char *Command)
 {
@@ -35,8 +54,9 @@ const char *OSCommandFindPath(const char *Command)
 char *RunCommand(char *RetStr, const char *Command, int Flags)
 {
     char *Exec=NULL, *Tempstr=NULL, *Token=NULL;
-    const char *p_args, *p_Path, *p_ExecPath;
+    const char *p_args, *p_Path, *p_ExecPath, *p_SudoPath;
     STREAM *S;
+    time_t StartTime, Now;
     int i;
 
     for (i=0; i < 100; i++)
@@ -52,6 +72,7 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 
     p_args=GetToken(Command, "\\S", &Token, 0);
     p_ExecPath=OSCommandFindPath(Token);
+    p_SudoPath=OSCommandFindPath("sudo");
 
 //if we can't find an executable for the command, indicate this by returning null
     if (! StrValid(p_ExecPath))
@@ -64,11 +85,13 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 
     if (Flags & RUNCMD_ROOT)
     {
-        if (p_Path) Exec=MCopyStr(Exec, "cmd:su -c ' ", p_ExecPath, " ", p_args, "'", NULL);
+    	if (StrValid(p_SudoPath)) Exec=MCopyStr(Exec, "cmd:sudo -S ", p_ExecPath, " ", p_args, NULL);
+        else if (p_Path) Exec=MCopyStr(Exec, "cmd:su -c ' ", p_ExecPath, " ", p_args, "'", NULL);
+	//Flags |= RUNCMD_NOSHELL;
     }
     else Exec=MCopyStr(Exec, "cmd:", p_ExecPath, " ", p_args, NULL);
 
-    Tempstr=CopyStr(Tempstr, "pty setsid");
+    Tempstr=CopyStr(Tempstr, "rw pty setsid");
     //if (Flags & RUNCMD_DAEMON) Tempstr=CatStr(Tempstr, " daemon");
     if (Flags & RUNCMD_NOSHELL) Tempstr=CatStr(Tempstr, " noshell");
 
@@ -83,13 +106,29 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
                 if (STREAMCountWaitingBytes(S) > 6) break;
                 usleep(10000);
             }
-            if (! StrValid(Config->RootPassword)) InteractiveQueryRootPassword("TAP networking requires root password");
+
+            if (! StrValid(Config->RootPassword)) 
+	    {
+		if (StrValid(p_SudoPath)) InteractiveQueryRootPassword("TAP networking requires sudo password");
+		else InteractiveQueryRootPassword("TAP networking requires su (root) password");
+	    }
             Tempstr=MCopyStr(Tempstr, Config->RootPassword, "\n", NULL);
             printf("SEND: [%s]\n", Config->RootPassword);
             STREAMWriteLine(Tempstr, S);
         }
-        sleep(1);
-        //RetStr=STREAMReadDocument(RetStr, S);
+
+	
+	STREAMSetTimeout(S, 50);
+	StartTime=time(NULL);
+	Tempstr=STREAMReadLine(Tempstr, S);
+	while (Tempstr)
+	{
+		printf("%s\n", Tempstr);
+		Now=time(NULL);
+		if ((Now - StartTime) > 3) break;
+		Tempstr=STREAMReadLine(Tempstr, S);
+	}
+	
         STREAMClose(S);
     }
     else

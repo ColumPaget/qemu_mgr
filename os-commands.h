@@ -11,6 +11,7 @@
 void FindOSCommands();
 const char *OSCommandFindPath(const char *Command);
 char *RunCommand(char *RetStr, const char *Command, int Flags);
+void OSCommandQemuGetVersion();
 
 
 #endif

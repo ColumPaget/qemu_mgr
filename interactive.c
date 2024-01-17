@@ -15,7 +15,17 @@ int InteractiveBusyWindow(const char *Title, const char *Msg)
 {
     if (Config->InteractMode == IA_XDIALOG) XDialogBusyWindow(Title, Msg);
 //    else if (Config->InteractMode == IA_TERMINAL) QEMUMGR_TerminalDialogSetup(SetupInfo);
+		else printf("%s:  %s\n", Title, Msg);
 }
+
+
+int InteractiveErrorMessage(const char *Title, const char *Msg)
+{
+    if (Config->InteractMode == IA_XDIALOG) XDialogErrorMessage(Title, Msg);
+//    else if (Config->InteractMode == IA_TERMINAL) QEMUMGR_TerminalDialogSetup(SetupInfo);
+		else printf("%s:  %s\n", Title, Msg);
+}
+
 
 
 int InteractiveChooseMode(const char *Hint)
