@@ -1,0 +1,25 @@
+v5.8 (2024-01-15)
+  * Fix build error when building without openssl
+  * Give in to autoconf insisting upgrade to modern format
+
+v5.7 (2024-01-15)
+  * Fix base32 misunderstanding
+  * Tidyups suggested by andreasstieger@github.com, including flags not returned by ProcessApplyLateConfig.
+  * libcapabilites support now defaults to 'no' 
+
+v5.6 (2024-01-14)
+  * TOTP function added
+  * base32 decode functions now return length
+
+v5.5 (2024-01-13)
+  * Base32 encoding schemes added
+  * binary-coded-decimal functions added in GeneralFunctions.c
+  * fixes for gzip encode/decode in streams
+  * fixes for issues with IP6
+  * use 'sys/wait.h' instead of 'wait.h'
+  * fixes/improvements for 'PipeSpawn'
+  * copy file permissions when FileCopy
+  * handle SUPER key in terminal functions
+  * lots of work on Ouath and experimental websocket and http servers
+
+
