@@ -1,3 +1,7 @@
+v1.4 (2024-01-25)
+  * use password dialog instead of query dialog in zenity and qarma
+  * fix mistake in configure.ac
+
 v1.3 (2024-01-17)
   * detect qemu version and use appropriate soundhw/audiodev options
   * use sudo rather than su if sudo is available
