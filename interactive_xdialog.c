@@ -217,6 +217,19 @@ char *XDialogQuery(char *RetStr, const char *Title, const char *Text)
 }
 
 
+char *XDialogQueryPassword(char *RetStr, const char *Title, const char *Text)
+{
+    char *Command=NULL;
+    const char *ptr;
+    
+    ptr=GetBasename(Config->DialogCmd);
+    if (StrValid(ptr) && (InStringList(ptr, "zenity,qarma", ","))) Command=MCopyStr(Command, " --password --title '", Title, "' --text '", Text, "'", NULL);
+    else Command=MCopyStr(Command, " --entry --title '", Title, "' --text '", Text, "'", NULL);
+    RetStr=XDialogRun(RetStr, Command, FALSE);
+
+    Destroy(Command);
+    return(RetStr);
+}
 
 
 static char *XDialogSetupSource(char *Setup, const char *InstallType, const char *InstallSource)
@@ -729,7 +742,7 @@ int XDialogSetup(const char *SetupInfo)
     glob_t Glob;
     int RetVal=FALSE, i;
 
-    XDialogFindXDialogCommand("yad,qarma,zenity,xdialog");
+    XDialogFindXDialogCommand("qarma,yad,zenity,xdialog");
 
     Tempstr=MCopyStr(Tempstr, GetCurrUserHomeDir(), "/.qemu_mgr/*.qemu_mgr", NULL);
     glob(Tempstr, 0, 0, &Glob);
@@ -785,14 +798,4 @@ int XDialogSetup(const char *SetupInfo)
 
     return(RetVal);
 }
-
-
-
-const char *XDialogQueryRootPassword(const char *Title)
-{
-    Config->RootPassword=XDialogQuery(Config->RootPassword, Title, "");
-
-    return(Config->RootPassword);
-}
-
 

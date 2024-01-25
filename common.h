@@ -8,7 +8,7 @@
 #include "libUseful-4/libUseful.h"
 #endif
 
-#define VERSION "1.3"
+#define VERSION "1.4"
 
 typedef enum {IA_UNKNOWN, IA_CLI, IA_TERMINAL, IA_XDIALOG} EInteractModes;
 

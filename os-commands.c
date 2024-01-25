@@ -1,26 +1,60 @@
 #include "os-commands.h"
 #include "interactive.h"
 #include <wait.h>
+#include <limits.h>
+#include <stdlib.h>
 
 ListNode *CommandPaths=NULL;
 
 
+//don't try to use programs that 'pretend' to be the command
+//for now this only checks for crayonizer, and should still
+//work with, say, busybox where ifconfig might be a link
+//pointing to the busybox exe
+static int IsValidCommand(const char *Path)
+{
+char *Tempstr=NULL;
+int result=TRUE;
+
+Tempstr=SetStrLen(Tempstr, PATH_MAX);
+if (realpath(Path, Tempstr))
+{
+	if (strcmp(GetBasename(Tempstr), "crayonizer")==0) result=FALSE;
+}
+Destroy(Tempstr);
+
+return(result);
+}
+
 void FindOSCommands()
 {
-    char *Tempstr=NULL, *File=NULL;
     const char *Commands[]= {"ifconfig", "iptables", "route", "ip", "qemu-system-x86_64", "qarma", "zenity", "yad", "xdialog", "vncviewer", "tightvnc", "tigervnc", "mkisofs", "tar", "zip", "7za", "gzip", "xz", "su", "sudo", NULL};
+    char *Tempstr=NULL;
+    ListNode *Files=NULL, *Curr=NULL;
     int i;
 
     if (! CommandPaths) CommandPaths=ListCreate();
     Tempstr=MCopyStr(Tempstr, getenv("PATH"), ":/usr/sbin:/usr/local/sbin:/sbin", NULL);
+
     for (i=0; Commands[i] != NULL; i++)
     {
-        File=FindFileInPath(File, Commands[i], Tempstr);
-        SetVar(CommandPaths, Commands[i], File);
+	Files=ListCreate();
+        FindFilesInPath(Commands[i], Tempstr, Files);
+	
+	Curr=ListGetNext(Files);
+	while (Curr)
+	{
+        if (IsValidCommand(Curr->Item))
+	{
+		SetVar(CommandPaths, Commands[i], Curr->Item);
+		break;
+	}
+	Curr=ListGetNext(Curr);
+	}
+	ListDestroy(Files, Destroy);
     }
 
     Destroy(Tempstr);
-    Destroy(File);
 }
 
 void OSCommandQemuGetVersion()
@@ -113,7 +147,6 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 		else InteractiveQueryRootPassword("TAP networking requires su (root) password");
 	    }
             Tempstr=MCopyStr(Tempstr, Config->RootPassword, "\n", NULL);
-            printf("SEND: [%s]\n", Config->RootPassword);
             STREAMWriteLine(Tempstr, S);
         }
 

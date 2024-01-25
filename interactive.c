@@ -67,7 +67,7 @@ const char *InteractiveQueryRootPassword(const char *Title)
     switch (Config->InteractMode)
     {
     case IA_XDIALOG:
-        Config->RootPassword=XDialogQuery(Config->RootPassword, "Enter Root Password", Title);
+        Config->RootPassword=XDialogQueryPassword(Config->RootPassword, "Enter Root Password", Title);
         break;
 
     default:
