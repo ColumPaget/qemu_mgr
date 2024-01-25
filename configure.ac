@@ -60,4 +60,5 @@ else
   AC_CONFIG_SUBDIRS([libUseful-5])
 fi
 
+AC_CONFIG_FILES([Makefile])
 AC_OUTPUT
