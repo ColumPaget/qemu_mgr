@@ -8,12 +8,17 @@
 #include "libUseful-4/libUseful.h"
 #endif
 
-#define VERSION "1.4"
+
+#define VERSION "1.5"
+
+#define CONF_USE_SU   1
 
 typedef enum {IA_UNKNOWN, IA_CLI, IA_TERMINAL, IA_XDIALOG} EInteractModes;
 
+
 typedef struct
 {
+int Flags;
 int InteractMode;
 char *DialogCmd;
 char *RootPassword;

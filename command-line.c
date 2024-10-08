@@ -127,6 +127,7 @@ static char *CommandLineParseImageArgs(char *RetStr, CMDLINE *Cmd)
         else if (strcmp(arg, "-chroot")==0) SetVar(Conf, "chroot", CommandLineNext(Cmd));
         else if (strcmp(arg, "-jail")==0) SetVar(Conf, "jail", CommandLineNext(Cmd));
         else if (strcmp(arg, "-pf")==0) SetVar(Conf, "portfwd", CommandLineNext(Cmd));
+        else if (strcmp(arg, "-su")==0) Config->Flags |= CONF_USE_SU;
         else if (strcmp(arg, "-template")==0)
         {
             arg=CommandLineNext(Cmd);
@@ -337,6 +338,8 @@ static void CommandLinePrintHelp()
     printf("Command line options are:\n\n");
     printf("qemu_mgr\n");
     printf("	run interactive mode with auto-detected dialog system\n");
+    printf("qemu_mgr -su\n");
+    printf("	run interactive mode with auto-detected dialog system, use 'su' rather than 'sudo' for commands requriing superuser permissions (mostly just setting up tap interfaces)\n");
     printf("qemu_mgr -i <type>\n");
     printf("	run interactive mode with specified dialog system. 'type' can be 'term', 'qarma' or 'zenity'\n");
     printf("qemu_mgr create <vm name> <options>\n");
@@ -391,6 +394,7 @@ static void CommandLinePrintHelp()
     printf(" -display <type>    display type: one of 'std', 'virtio', 'qxl', 'rage128p', 'rv100', 'vnc' or 'none'. See 'qemu_mgr --help-vnc' for more info on VNC.\n");
     printf(" -prealloc <yes|no>    Preallocate memory to the vm (rather than have the vm grab memory as it needs it)\n");
     printf(" -fullscreen <yes|no>  Fullscreen graphics\n");
+    printf(" -su                   Use 'su' rather than 'sudo' for privesc\n");
     printf(" -password <secret>    Password for use with VNC\n");
     printf(" -pass     <secret>    Password for use with VNC\n");
     printf(" -pw       <secret>    Password for use with VNC\n");
@@ -434,11 +438,9 @@ ListNode *CommandLineParse(int argc, char *argv[])
     Actions=ListCreate();
     Cmd=CommandLineParserCreate(argc, argv);
     arg=CommandLineNext(Cmd);
-    if ( ! StrValid(arg))
+    if (StrValid(arg))
     {
-        ListAddTypedItem(Actions, ACT_INTERACTIVE, "", NULL);
-    }
-    else if (strcasecmp(arg, "list")==0) CommandLineListCommand(Actions, Cmd);
+    if (strcasecmp(arg, "list")==0) CommandLineListCommand(Actions, Cmd);
     else if (strcasecmp(arg, "create")==0) CommandLineParseCreateCommand(Actions, Cmd);
     else if (strcasecmp(arg, "change")==0) CommandLineParseCommand(ACT_CHANGE, Actions, Cmd);
     else if (strcasecmp(arg, "add")==0) CommandLineParseCommand(ACT_ADD, Actions, Cmd);
@@ -462,6 +464,7 @@ ListNode *CommandLineParse(int argc, char *argv[])
         arg=CommandLineNext(Cmd);
         ListAddTypedItem(Actions, ACT_INTERACTIVE, arg, NULL);
     }
+    else if (strcasecmp(arg, "-su")==0) Config->Flags |= CONF_USE_SU;
     else if (strcasecmp(arg, "-?")==0) CommandLinePrintHelp();
     else if (strcasecmp(arg, "-h")==0) CommandLinePrintHelp();
     else if (strcasecmp(arg, "-help")==0) CommandLinePrintHelp();
@@ -471,6 +474,9 @@ ListNode *CommandLineParse(int argc, char *argv[])
     else if (strcasecmp(arg, "-version")==0) CommandLinePrintVersion();
     else if (strcasecmp(arg, "-v")==0) CommandLinePrintVersion();
     else printf("ERROR: unknown command '%s'\n", arg);
+    }
+
+    if (ListSize(Actions)==0) ListAddTypedItem(Actions, ACT_INTERACTIVE, "", NULL);
 
     return(Actions);
 }

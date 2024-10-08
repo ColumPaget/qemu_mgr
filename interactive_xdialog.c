@@ -221,9 +221,10 @@ char *XDialogQueryPassword(char *RetStr, const char *Title, const char *Text)
 {
     char *Command=NULL;
     const char *ptr;
-    
+
     ptr=GetBasename(Config->DialogCmd);
     if (StrValid(ptr) && (InStringList(ptr, "zenity,qarma", ","))) Command=MCopyStr(Command, " --password --title '", Title, "' --text '", Text, "'", NULL);
+    else if (StrValid(ptr) && (InStringList(ptr, "yad", ","))) Command=MCopyStr(Command, " --entry --hide-text --title '", Title, "' --text '", Text, "'", NULL);
     else Command=MCopyStr(Command, " --entry --title '", Title, "' --text '", Text, "'", NULL);
     RetStr=XDialogRun(RetStr, Command, FALSE);
 

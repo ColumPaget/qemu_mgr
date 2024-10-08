@@ -4,7 +4,6 @@
 #include "common.h"
 
 #define RUNCMD_ROOT    1
-#define RUNCMD_DAEMON  2
 #define RUNCMD_NOSHELL 4
 
 

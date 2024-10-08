@@ -1,3 +1,9 @@
+v1.5 (2024-10-07)
+  * hide text when asking for passwords using yad
+  * use sudo background mode
+  * added '-su' option to specify using 'su' rather than 'sudo'
+  * modprobe tun and tap modules if tun/tap interface requested
+
 v1.4 (2024-01-25)
   * use password dialog instead of query dialog in zenity and qarma
   * fix mistake in configure.ac

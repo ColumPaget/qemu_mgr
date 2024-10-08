@@ -13,17 +13,17 @@ ListNode *CommandPaths=NULL;
 //pointing to the busybox exe
 static int IsValidCommand(const char *Path)
 {
-char *Tempstr=NULL;
-int result=TRUE;
+    char *Tempstr=NULL;
+    int result=TRUE;
 
-Tempstr=SetStrLen(Tempstr, PATH_MAX);
-if (realpath(Path, Tempstr))
-{
-	if (strcmp(GetBasename(Tempstr), "crayonizer")==0) result=FALSE;
-}
-Destroy(Tempstr);
+    Tempstr=SetStrLen(Tempstr, PATH_MAX);
+    if (realpath(Path, Tempstr))
+    {
+        if (strcmp(GetBasename(Tempstr), "crayonizer")==0) result=FALSE;
+    }
+    Destroy(Tempstr);
 
-return(result);
+    return(result);
 }
 
 void FindOSCommands()
@@ -38,20 +38,20 @@ void FindOSCommands()
 
     for (i=0; Commands[i] != NULL; i++)
     {
-	Files=ListCreate();
+        Files=ListCreate();
         FindFilesInPath(Commands[i], Tempstr, Files);
-	
-	Curr=ListGetNext(Files);
-	while (Curr)
-	{
-        if (IsValidCommand(Curr->Item))
-	{
-		SetVar(CommandPaths, Commands[i], Curr->Item);
-		break;
-	}
-	Curr=ListGetNext(Curr);
-	}
-	ListDestroy(Files, Destroy);
+
+        Curr=ListGetNext(Files);
+        while (Curr)
+        {
+            if (IsValidCommand(Curr->Item))
+            {
+                SetVar(CommandPaths, Commands[i], Curr->Item);
+                break;
+            }
+            Curr=ListGetNext(Curr);
+        }
+        ListDestroy(Files, Destroy);
     }
 
     Destroy(Tempstr);
@@ -59,39 +59,64 @@ void FindOSCommands()
 
 void OSCommandQemuGetVersion()
 {
-const char *p_ExecPath;
-char *Tempstr=NULL;
-STREAM *S;
+    const char *p_ExecPath;
+    char *Tempstr=NULL;
+    STREAM *S;
 
-p_ExecPath=OSCommandFindPath("qemu-system-x86_64");
-Tempstr=MCopyStr(Tempstr, "cmd:", p_ExecPath, " --version", NULL);
-S=STREAMOpen(Tempstr, "");
-if (S)
-{
-Tempstr=STREAMReadLine(Tempstr, S);
-if (strncmp(Tempstr, "QEMU emulator version ",22)==0) GetToken(Tempstr+22, "\\S", & (Config->QemuVersion), 0);
-STREAMClose(S);
-}
+    p_ExecPath=OSCommandFindPath("qemu-system-x86_64");
+    Tempstr=MCopyStr(Tempstr, "cmd:", p_ExecPath, " --version", NULL);
+    S=STREAMOpen(Tempstr, "");
+    if (S)
+    {
+        Tempstr=STREAMReadLine(Tempstr, S);
+        if (strncmp(Tempstr, "QEMU emulator version ",22)==0) GetToken(Tempstr+22, "\\S", & (Config->QemuVersion), 0);
+        STREAMClose(S);
+    }
 
-Destroy(Tempstr);
+    Destroy(Tempstr);
 }
 
 
 const char *OSCommandFindPath(const char *Command)
 {
+		if (*Command=='/') return(Command);
     return(GetVar(CommandPaths, Command));
 }
 
 
 
+static void RunCommandPasswordTransact(STREAM *S, const char *SudoPath)
+{
+    int i;
+    char *Tempstr=NULL;
+
+    //wait for root password query. Will not end in '\n', so we can't just do STREAMReadLine
+    for (i=0; i < 10; i++)
+    {
+        if (STREAMCountWaitingBytes(S) > 6) break;
+        usleep(10000);
+    }
+
+    if (! StrValid(Config->RootPassword))
+    {
+        if (StrValid(SudoPath)) InteractiveQueryRootPassword("TAP networking requires sudo password");
+        else InteractiveQueryRootPassword("TAP networking requires su (root) password");
+    }
+    Tempstr=MCopyStr(Tempstr, Config->RootPassword, "\n", NULL);
+    STREAMWriteLine(Tempstr, S);
+    STREAMFlush(S);
+
+    Destroy(Tempstr);
+}
+
 
 char *RunCommand(char *RetStr, const char *Command, int Flags)
 {
-    char *Exec=NULL, *Tempstr=NULL, *Token=NULL;
+    char *Exec=NULL, *Cmd=NULL, *Args=NULL, *Tempstr=NULL;
     const char *p_args, *p_Path, *p_ExecPath, *p_SudoPath;
-    STREAM *S;
     time_t StartTime, Now;
-    int i;
+    STREAM *S;
+    int i, fd;
 
     for (i=0; i < 100; i++)
     {
@@ -104,14 +129,15 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 //the Flags variable is pass-by-value
     if (geteuid()==0) Flags &= ~RUNCMD_ROOT;
 
-    p_args=GetToken(Command, "\\S", &Token, 0);
-    p_ExecPath=OSCommandFindPath(Token);
+    p_args=GetToken(Command, "\\S", &Tempstr, 0);
+    Exec=CopyStr(Exec, OSCommandFindPath(Tempstr));
     p_SudoPath=OSCommandFindPath("sudo");
 
 //if we can't find an executable for the command, indicate this by returning null
-    if (! StrValid(p_ExecPath))
+    if (! StrValid(Exec))
     {
         Destroy(Exec);
+        Destroy(Tempstr);
         Destroy(RetStr);
         return(NULL);
     }
@@ -119,49 +145,42 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 
     if (Flags & RUNCMD_ROOT)
     {
-    	if (StrValid(p_SudoPath)) Exec=MCopyStr(Exec, "cmd:sudo -S ", p_ExecPath, " ", p_args, NULL);
-        else if (p_Path) Exec=MCopyStr(Exec, "cmd:su -c ' ", p_ExecPath, " ", p_args, "'", NULL);
-	//Flags |= RUNCMD_NOSHELL;
+        if (StrValid(p_SudoPath) && (! (Config->Flags & CONF_USE_SU)) ) Cmd=MCopyStr(Cmd, "cmd:sudo -b -S ", Exec, " ", p_args, NULL);
+        else if (p_Path) Cmd=MCopyStr(Cmd, "cmd:su -c '", Exec, " ", p_args, "'", NULL);
     }
-    else Exec=MCopyStr(Exec, "cmd:", p_ExecPath, " ", p_args, NULL);
+    else Cmd=MCopyStr(Cmd, "cmd:", Cmd, " ", p_args, NULL);
 
-    Tempstr=CopyStr(Tempstr, "rw pty setsid");
-    //if (Flags & RUNCMD_DAEMON) Tempstr=CatStr(Tempstr, " daemon");
-    if (Flags & RUNCMD_NOSHELL) Tempstr=CatStr(Tempstr, " noshell");
+    Args=CopyStr(Args, "rw pty setsid");
 
-    printf("run: [%s] %s\n", Exec, Tempstr);
-    S=STREAMOpen(Exec, Tempstr);
+    fd=open("/dev/tty", O_RDWR);
+    if (fd > -1)
+    {
+        Tempstr=FormatStr(Tempstr, " ctty=%d", fd);
+        Args=CatStr(Args, Tempstr);
+    }
+
+
+    if (Flags & RUNCMD_NOSHELL) Args=CatStr(Args, " noshell");
+
+    printf("run: [%s] %s\n", Cmd, Args);
+
+    S=STREAMOpen(Cmd, Args);
     if (S)
     {
-        if (Flags & RUNCMD_ROOT)
-        {
-            for (i=0; i < 10; i++)
-            {
-                if (STREAMCountWaitingBytes(S) > 6) break;
-                usleep(10000);
-            }
+        if (Flags & RUNCMD_ROOT) RunCommandPasswordTransact(S, p_SudoPath);
 
-            if (! StrValid(Config->RootPassword)) 
-	    {
-		if (StrValid(p_SudoPath)) InteractiveQueryRootPassword("TAP networking requires sudo password");
-		else InteractiveQueryRootPassword("TAP networking requires su (root) password");
-	    }
-            Tempstr=MCopyStr(Tempstr, Config->RootPassword, "\n", NULL);
-            STREAMWriteLine(Tempstr, S);
+        STREAMSetTimeout(S, 50);
+        StartTime=time(NULL);
+        Tempstr=STREAMReadLine(Tempstr, S);
+        while (Tempstr)
+        {
+            printf("%s\n", Tempstr);
+            Now=time(NULL);
+            if ((Now - StartTime) > 3) break;
+            Tempstr=STREAMReadLine(Tempstr, S);
         }
 
-	
-	STREAMSetTimeout(S, 50);
-	StartTime=time(NULL);
-	Tempstr=STREAMReadLine(Tempstr, S);
-	while (Tempstr)
-	{
-		printf("%s\n", Tempstr);
-		Now=time(NULL);
-		if ((Now - StartTime) > 3) break;
-		Tempstr=STREAMReadLine(Tempstr, S);
-	}
-	
+        sleep(1);
         STREAMClose(S);
     }
     else
@@ -173,6 +192,8 @@ char *RunCommand(char *RetStr, const char *Command, int Flags)
 
     Destroy(Tempstr);
     Destroy(Exec);
+    Destroy(Cmd);
+    Destroy(Args);
 
     return(RetStr);
 }
