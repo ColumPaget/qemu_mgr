@@ -4,6 +4,7 @@
 #include "mount.h"
 #include "screenshot.h"
 #include "qmp.h"
+#include "help.h"
 
 void ActionPerform(int Action, const char *ImageName, const char *Config)
 {
@@ -97,6 +98,21 @@ void ActionPerform(int Action, const char *ImageName, const char *Config)
         ImageScreenshot(ImageName, Config);
         break;
 
+    case ACT_VERSION:
+        CommandLinePrintVersion();
+        break;
+
+    case ACT_HELP:
+        CommandLinePrintHelp();
+        break;
+
+    case ACT_HELP_MEDIA:
+        CommandLinePrintMediaHelp();
+        break;
+
+    case ACT_HELP_VNC:
+        CommandLinePrintVNCHelp();
+        break;
     }
 
     Destroy(Tempstr);

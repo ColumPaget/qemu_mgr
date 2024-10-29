@@ -507,7 +507,7 @@ int ImageStart(const char *ImageName, const char *Options)
         {
             Path=RunCommand(Path, "/sbin/modprobe tap", RUNCMD_ROOT);
             Path=RunCommand(Path, "/sbin/modprobe tun", RUNCMD_ROOT);
-						printf("MP: %s\n", Path);
+            printf("MP: %s\n", Path);
             Path=RunCommand(Path, Command, RUNCMD_ROOT | RUNCMD_NOSHELL);
         }
         else Spawn(Command, "setsid");

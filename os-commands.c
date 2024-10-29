@@ -79,7 +79,7 @@ void OSCommandQemuGetVersion()
 
 const char *OSCommandFindPath(const char *Command)
 {
-		if (*Command=='/') return(Command);
+    if (*Command=='/') return(Command);
     return(GetVar(CommandPaths, Command));
 }
 

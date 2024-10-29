@@ -9,7 +9,7 @@
 #endif
 
 
-#define VERSION "1.5"
+#define VERSION "1.6"
 
 #define CONF_USE_SU   1
 
